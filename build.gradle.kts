@@ -8,6 +8,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("com.willowtreeapps.assertk:assertk:0.28.1")
 }
 
 tasks.test {
