@@ -3,3 +3,9 @@
 
 # Ignore Gradle build output directory
 build
+
+# Ignore Kotlin compiler output directory
+.kotlin
+
+# Ignore IntelliJ IDEA project settings directory
+.idea
