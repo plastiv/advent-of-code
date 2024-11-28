@@ -1,8 +1,9 @@
 package aoc2023
 
-fun main() {
-    val input = "Kotlin"
-    println(sumAllValues(input))
-}
-
-fun sumAllValues(input: String): Number = input.length
+fun sumAllValues(input: List<String>): Number =
+    input
+        .sumOf { line ->
+            val firstDigitChar = line.first { it.isDigit() }
+            val lastDigitChar = line.last { it.isDigit() }
+            "$firstDigitChar$lastDigitChar".toInt()
+        }
