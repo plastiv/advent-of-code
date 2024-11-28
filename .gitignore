@@ -9,3 +9,6 @@ build
 
 # Ignore IntelliJ IDEA project settings directory
 .idea
+
+# Ignore input files (request by adventofcode maintainer)
+src/test/**/*.txt
