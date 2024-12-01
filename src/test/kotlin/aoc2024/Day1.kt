@@ -54,4 +54,47 @@ class Day1 {
             abs(dif)
         }
     }
+
+    @Test
+    fun part2Example() {
+        val input =
+            $"""
+            3   4
+            4   3
+            2   5
+            1   3
+            3   9
+            3   3
+            """.trimIndent()
+                .lines()
+        val result = part2(input)
+        assertThat(result).isEqualTo(31)
+    }
+
+    @Test
+    fun part2Input() {
+        val lines = fileInput("Day1.txt").readLines()
+        val duration = measureTime {
+            val result = part2(lines)
+            assertThat(result).isEqualTo(23228917)
+        }
+        println("part1 $duration")
+    }
+
+    fun part2(input: List<String>): Int {
+
+        val listOfLists = input.map { str ->
+            str.split("   ").map { it.toInt() }
+        }.also(::println)
+
+        val lefts = listOfLists.map { it.first() }
+            .apply(::println)
+
+        val rights = listOfLists.map { it.last() }
+            .apply(::println)
+
+        return lefts.sumOf { left ->
+            left * rights.count { right -> right == left }
+        }
+    }
 }
