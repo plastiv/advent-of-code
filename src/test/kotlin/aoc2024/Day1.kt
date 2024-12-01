@@ -34,25 +34,18 @@ class Day1 {
     }
 
     fun part1(input: List<String>): Int {
-        val listOfLists = input.map { str ->
-            str.split("   ").map { it.toInt() }
-        }.also(::println)
+        val (lefts, rights) = input.map { str ->
+            str.split("   ")
+                .map(String::toInt)
+                .let { it.first() to it.last() }
+        }.unzip()
 
-        val lefts = listOfLists.map { it.first() }
+        return lefts
             .sorted()
-            .apply(::println)
-
-        val rights = listOfLists.map { it.last() }
-            .sorted()
-            .apply(::println)
-
-        return lefts.zip(rights).sumOf { pair ->
-            val dif = pair.second - pair.first
-            if (dif < 0) {
-                println("L: ${pair.first} R: ${pair.second} D: $dif")
+            .zip(rights.sorted())
+            .sumOf { pair ->
+                abs(pair.second - pair.first)
             }
-            abs(dif)
-        }
     }
 
     @Test
@@ -82,16 +75,11 @@ class Day1 {
     }
 
     fun part2(input: List<String>): Int {
-
-        val listOfLists = input.map { str ->
-            str.split("   ").map { it.toInt() }
-        }.also(::println)
-
-        val lefts = listOfLists.map { it.first() }
-            .apply(::println)
-
-        val rights = listOfLists.map { it.last() }
-            .apply(::println)
+        val (lefts, rights) = input.map { str ->
+            str.split("   ")
+                .map(String::toInt)
+                .let { it.first() to it.last() }
+        }.unzip()
 
         return lefts.sumOf { left ->
             left * rights.count { right -> right == left }
