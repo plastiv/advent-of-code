@@ -14,7 +14,7 @@ class Day3 {
             """.trimIndent()
                 .lines()
         val result = part1(input)
-        assertThat(result).isEqualTo(603*692 + 387*685 + 28*717)
+        assertThat(result).isEqualTo(603 * 692 + 387 * 685 + 28 * 717)
     }
 
     @Test
@@ -22,19 +22,18 @@ class Day3 {
         val lines = fileInput("Day3.txt").readLines()
         val duration = measureTime {
             val result = part1(lines)
-            assertThat(result).isEqualTo(442)
+            assertThat(result).isEqualTo(174336360)
         }
         println("part1 $duration")
     }
 
     fun part1(input: List<String>): Int {
-        val regex = "mul\\(\\d+,\\d+\\)".toRegex()
+        val regex = """mul\((?<first>\d+),(?<second>\d+)\)""".toRegex()
         return input.sumOf { str ->
             regex.findAll(str).sumOf { result ->
-                val twoNum= result.groupValues[0]
-                val first = twoNum.substringAfter("mul(").substringBefore(",")
-                val second = twoNum.substringAfter(",").substringBefore(")")
-                first.toInt() * second.toInt()
+                val first = result.groups["first"]!!.value.toInt()
+                val second = result.groups["second"]!!.value.toInt()
+                first * second
             }
         }
     }
@@ -44,13 +43,13 @@ class Day3 {
         val lines = fileInput("Day3.txt").readLines()
         val duration = measureTime {
             val result = part2(lines)
-            assertThat(result).isEqualTo(493)
+            assertThat(result).isEqualTo(88802350)
         }
         println("part2 $duration")
     }
 
     fun part2(input: List<String>): Int {
-        val regex = "mul\\(\\d+,\\d+\\)|(don't\\(\\))|(do\\(\\))".toRegex()
+        val regex = """mul\(\d+,\d+\)|don't\(\)|do\(\)""".toRegex()
         var doCount = true
         return input.sumOf { str ->
             regex.findAll(str).sumOf { result ->
