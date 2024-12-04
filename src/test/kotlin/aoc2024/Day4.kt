@@ -41,13 +41,13 @@ class Day4 {
         val lines = fileInput("Day4.txt").readLines()
         val duration = measureTime {
             val result = part1(lines)
-            assertThat(result).isEqualTo(2552)
+            assertThat(result).isEqualTo(2567)
         }
         println("part1 $duration")
     }
 
     fun String.countXmas(): Int {
-        return windowed(4).count { string -> string.contains("XMAS")  }
+        return windowed(4).count { string -> string.contains("XMAS") || string.contains("SAMX") }
     }
 
     @Test
@@ -103,42 +103,64 @@ class Day4 {
     }
 
     @Test
+    fun part2Example() {
+        val input =
+            $"""
+            .M.S......
+            ..A..MSMS.
+            .M.S.MAA..
+            ..A.ASMSM.
+            .M.S.M....
+            ..........
+            S.S.S.S.S.
+            .A.A.A.A..
+            M.M.M.M.M.
+            ..........
+            """.trimIndent()
+                .lines()
+        val result = part2(input)
+        assertThat(result).isEqualTo(9)
+    }
+
+    @Test
     fun part2Input() {
-        val lines = fileInput("Day3.txt").readLines()
+        val lines = fileInput("Day4.txt").readLines()
         val duration = measureTime {
             val result = part2(lines)
-            assertThat(result).isEqualTo(88802350)
+            assertThat(result).isEqualTo(2029)
         }
         println("part2 $duration")
     }
 
     fun part2(input: List<String>): Int {
-        val regex = """mul\(\d+,\d+\)|don't\(\)|do\(\)""".toRegex()
-        var doCount = true
-        return input.sumOf { str ->
-            regex.findAll(str).sumOf { result ->
-                val match = result.groupValues[0]
-                when (match) {
-                    "do()" -> {
-                        doCount = true
-                        0
-                    }
-
-                    "don't()" -> {
-                        doCount = false
-                        0
-                    }
-
-                    else -> if (doCount) {
-                        val first = match.substringAfter("mul(").substringBefore(",")
-                        val second = match.substringAfter(",").substringBefore(")")
-                        first.toInt() * second.toInt()
-                    } else {
-                        0
-                    }
-                }
-
+        val elements = input.mapIndexed { row, str ->
+            str.mapIndexed { col, char ->
+                Node(Position(col, row), char)
             }
+        }.flatten()
+            .associateBy { it.position }
+
+        println("Count lines")
+        return elements.filter { entry ->
+            entry.value.value == 'A'
+        }.count { entry ->
+            elements.nearbyWindow2(entry.value.position).also(::println) == 2
         }
+    }
+
+
+    fun Map<Position, Node>.nearbyWindow2(position: Position): Int {
+
+        return listOf(
+            listOf(position.southEast(), position, position.northWest()),
+            listOf(position.northEast(), position, position.southWest()),
+        ).map { positions ->
+            positions.mapNotNull { position ->
+                this[position]?.value
+            }
+        }.filter { it.size == 3 }
+            .map { chars -> chars.joinToString("") }
+            .count { str -> str == "MAS" || str == "SAM" }
+
     }
 }
