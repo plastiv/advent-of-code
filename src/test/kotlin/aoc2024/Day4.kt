@@ -1,9 +1,19 @@
 package aoc2024
 
+import aoc2024.Day4.Position
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlin.test.Test
 import kotlin.time.measureTime
+
+fun Position.north() = copy(col, row.dec())
+fun Position.northEast() = copy(col.dec(), row.dec())
+fun Position.northWest() = copy(col.inc(), row.dec())
+fun Position.east() = copy(col.dec(), row)
+fun Position.west() = copy(col.inc(), row)
+fun Position.south() = copy(col, row.inc())
+fun Position.southEast() = copy(col.dec(), row.inc())
+fun Position.southWest() = copy(col.inc(), row.inc())
 
 class Day4 {
     @Test
@@ -37,7 +47,7 @@ class Day4 {
     }
 
     fun String.countXmas(): Int {
-        return windowed(4).count { string -> string.contains("XMAS") || string.contains("SAMX") }
+        return windowed(4).count { string -> string.contains("XMAS")  }
     }
 
     @Test
@@ -48,73 +58,48 @@ class Day4 {
         assertThat("XMAS".countXmas()).isEqualTo(1)
     }
 
+    data class Position(val col: Int, val row: Int)
+    data class Node(val position: Position, val value: Char)
+
+    fun Map<Position, Node>.myWindow(initPosition: Position, operation: (Position) -> Position): String {
+        return (0..2).fold(initPosition to "${this[initPosition]!!.value}") { (position, acc), _ ->
+            val newPosition = operation(position)
+            val newChar = this[newPosition]?.value
+            val newAcc = if (newChar == null) acc else acc + newChar
+            newPosition to newAcc
+        }.second
+    }
+
+    fun Map<Position, Node>.nearbyWindow(position: Position): List<String> {
+
+        return listOf(
+            myWindow(position, Position::north),
+            myWindow(position, Position::northEast),
+            myWindow(position, Position::northWest),
+            myWindow(position, Position::east),
+            myWindow(position, Position::west),
+            myWindow(position, Position::south),
+            myWindow(position, Position::southEast),
+            myWindow(position, Position::southWest),
+        ).filter { it.length == 4 }
+    }
+
     fun part1(input: List<String>): Int {
 
-        input.map { line ->
-            line.map { ch ->
-                when (ch) {
-                    'X', 'M', 'A', 'S' -> ch
-                    else -> '.'
-                }
+        val elements = input.mapIndexed { row, str ->
+            str.mapIndexed { col, char ->
+                Node(Position(col, row), char)
             }
-        }.forEach(::println)
+        }.flatten()
+            .associateBy { it.position }
 
         println("Count lines")
-        var count = input.sumOf { it.countXmas() }
+        return elements.filter { entry ->
+            entry.value.value == 'X'
+        }.map { entry ->
+            elements.nearbyWindow(entry.value.position).also(::println).count { it == "XMAS" }
+        }.sum()
 
-        val chars = input.map { string -> string.toList() }
-
-        println("transpose")
-
-        println("Count columns")
-        count += chars.transpose().map { chars -> chars.joinToString("") }
-            .sumOf { it.countXmas() }
-
-        println("diagonals")
-        count += chars.diagonals().sumOf { it.countXmas()       }
-
-        count += chars.transpose().diagonals().sumOf { it.countXmas() }
-        return count
-    }
-
-    fun <T> List<List<T>>.transpose(): List<List<T>> {
-        return (this[0].indices).map { i -> (this.indices).map { j -> this[j][i] } }
-    }
-
-
-    fun List<List<Char>>.diagonals(): List<String> {
-        val mList = mutableListOf<String>()
-        // main
-        val main =
-            (this.indices).map { j -> this[j][j] }.joinToString("")
-        mList.add(main)
-        // diagonal up (right)
-        for (diagN in 1..this[0].size - 1) {
-            println("Look diagonal $diagN")
-            val diag = mutableListOf<Char>()
-            var col = diagN
-            for (row in 0..(this.size - diagN - 1)) {
-//                println("row $row col $col")
-                diag.add(this[row][col++])
-            }
-
-            mList.add(diag.joinToString(""))
-            println(mList.last())
-        }
-        // diagonal down left
-        for (diagN in 1..this.size - 1) {
-            println("Look diagonal $diagN")
-            val diag = mutableListOf<Char>()
-            var row = diagN
-            for (col in 0..(this.size - diagN - 1)) {
-//                println("row $row col $col")
-                diag.add(this[row++][col])
-            }
-
-            mList.add(diag.joinToString(""))
-            println(mList.last())
-        }
-        return mList.toList()
     }
 
     @Test
