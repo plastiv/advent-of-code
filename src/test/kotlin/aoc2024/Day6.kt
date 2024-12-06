@@ -54,40 +54,7 @@ class Day6 {
         start
             .also(::println)
 
-        val visited = mutableMapOf<Positionm, Boolean>()
-        var currentPosition = start.first
-        var currentChar: Char? = start.second
-        var currentDirection = 1
-
-        while (currentChar != null) {// outside of visible map
-            // if peek next char is obsticle
-            val peekNextPosition = when (currentDirection) {
-                1 -> currentPosition.north()
-                2 -> currentPosition.west()
-                3 -> currentPosition.south()
-                4 -> currentPosition.east()
-                else -> error("Shouldn't happen but was $currentDirection")
-            }
-            val peekNextChar = map.elements[peekNextPosition]
-            if (peekNextChar == '#') {
-                // change direction
-                currentDirection++
-                if (currentDirection == 5) {
-                    currentDirection = 1
-                }
-            }
-            // move step further
-            currentPosition = when (currentDirection) {
-                1 -> currentPosition.north()
-                2 -> currentPosition.west()
-                3 -> currentPosition.south()
-                4 -> currentPosition.east()
-                else -> error("Shouldn't happen but was $currentDirection")
-            }
-            currentChar = map.elements[currentPosition]
-            visited.put(currentPosition, true)
-        }
-        return visited.size - 1
+        return getGuardPositions(map, start.first, start.second, 1).size
     }
 
     // north = 1
@@ -152,7 +119,7 @@ class Day6 {
         return map.elements.map { entry ->
             if (entry.value != '^' && entry.value != '#') {
                 val newMap = addObsticle(map, entry.key)
-//                println("Check variant ${entry.key} ${entry.value}")
+                println("Check variant ${entry.key} ${entry.value}")
                 isLoop2(newMap, start.first, start.second, 1, entry.key)
             } else {
                 false
@@ -162,6 +129,7 @@ class Day6 {
 
     fun addObsticle(map: Grid<Char>, positionm: Positionm): Grid<Char> {
         val toMutableMap = map.elements.toMutableMap()
+//        check(toMutableMap[positionm] != '#')
         toMutableMap.put(positionm, '#')
         return Grid(toMutableMap.toMap(), map.lines, map.rowSize, map.colSize)
     }
@@ -212,6 +180,7 @@ class Day6 {
                 if (currentDirection == 5) {
                     currentDirection = 1
                 }
+                continue
             }
             // move step further
             currentPosition = when (currentDirection) {
@@ -240,9 +209,10 @@ class Day6 {
         var currentPosition = startPosition
         var currentChar: Char? = startChar
         var currentDirection = startDirection
-        var operationCount = 0
+        val visitedCount = visited.getOrDefault(currentPosition, 0)
+        visited.put(currentPosition, visitedCount + 1)
+
         while (currentChar != null) {// outside of visible map
-            operationCount++
             // if peek next char is obsticle
             val peekNextPosition = when (currentDirection) {
                 1 -> currentPosition.north()
@@ -251,9 +221,6 @@ class Day6 {
                 4 -> currentPosition.east()
                 else -> error("Shouldn't happen but was $currentDirection")
             }
-
-            visited.put(currentPosition, currentDirection)
-
             val peekNextChar = map.elements[peekNextPosition]
             if (peekNextChar == '#') {
                 // change direction
@@ -261,6 +228,7 @@ class Day6 {
                 if (currentDirection == 5) {
                     currentDirection = 1
                 }
+                continue
             }
             // move step further
             currentPosition = when (currentDirection) {
@@ -272,9 +240,12 @@ class Day6 {
             }
             currentChar = map.elements[currentPosition]
 
-            if (operationCount > 20000) {
-//                printVisited(map, visited.mapValues { entry -> true })
+            val visitedCount = visited.getOrDefault(currentPosition, 0)
+            if (visitedCount > 5) {
                 return true
+            }
+            if (currentChar != null) {
+                visited.put(currentPosition, visitedCount + 1)
             }
         }
         return false
