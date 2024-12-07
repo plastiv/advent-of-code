@@ -31,7 +31,7 @@ class Day6 {
         val lines = fileInput("Day6.txt").readLines()
         val duration = measureTime {
             val result = part1(lines)
-            assertThat(result).isEqualTo(5563)
+            assertThat(result).isEqualTo(5564)
         }
         println("part1 $duration")
     }
@@ -40,12 +40,12 @@ class Day6 {
         val map = input.toCharGrid()
         val start = map
             .elements
-            .firstNotNullOf { entry -> if (entry.value == '^') Pair(entry.key, entry.value) else null }
+            .firstNotNullOf { entry -> if (entry.value == '^') entry.key else null }
 
         start
             .also(::println)
 
-        return getGuardPositions(map, start.first, start.second, 0).size
+        return getGuardPositions(map, start, 0).size
     }
 
     // north = 0
@@ -87,39 +87,48 @@ class Day6 {
         val map = input.toCharGrid()
         val start = map
             .elements
-            .firstNotNullOf { entry -> if (entry.value == '^') Pair(entry.key, entry.value) else null }
+            .firstNotNullOf { entry -> if (entry.value == '^') entry.key else null }
 
-        start
-            .also(::println)
+        return getGuardPositions(map, start, 0)
+            .drop(1) // exclude starting point from obstacle candidates
+            .map { (position, direction) ->
+                // avoid restarting guard path from the start as optimization
+                val prevPosition = position.stepBack(direction)
+                isLoop(map, prevPosition, direction, position)
+            }.count { bool -> bool == true }
+    }
 
-        val guardPositions = getGuardPositions(map, start.first, start.second, 0)
-        val guardPath = guardPositions.map { entry ->
-            isLoop(map, start.first, start.second, 0, entry.key)
-        }
-        println("Lookup size: ${guardPath.size}")
-        return guardPath.count { bool -> bool == true }
+    fun Positionm.move(direction: Int) = when (direction) {
+        0 -> this.north()
+        1 -> this.west()
+        2 -> this.south()
+        3 -> this.east()
+        else -> error("Shouldn't happen but was $direction")
+    }
+
+    fun Positionm.stepBack(facingDirection: Int) = when (facingDirection) {
+        0 -> this.south()
+        1 -> this.east()
+        2 -> this.north()
+        3 -> this.west()
+        else -> error("Shouldn't happen but was $facingDirection")
     }
 
     fun getGuardPositions(
         map: Grid<Char>,
         startPosition: Positionm,
-        startChar: Char,
         startDirection: Int
-    ): Map<Positionm, Int> {
-        val visited = mutableMapOf<Positionm, Int>()
+    ): List<Pair<Positionm, Int>> {
+        val visited = mutableListOf<Pair<Positionm, Int>>()
         var currentPosition = startPosition
-        var currentChar: Char? = startChar
+        var currentChar: Char? = '^'
         var currentDirection = startDirection
 
+        visited.add(Pair(currentPosition, currentDirection))
+
         while (currentChar != null) {// outside of visible map
-            // if peek next char is obsticle
-            val peekNextPosition = when (currentDirection) {
-                0 -> currentPosition.north()
-                1 -> currentPosition.west()
-                2 -> currentPosition.south()
-                3 -> currentPosition.east()
-                else -> error("Shouldn't happen but was $currentDirection")
-            }
+            // if peek next char is obstacle
+            val peekNextPosition = currentPosition.move(currentDirection)
             val peekNextChar = map.elements[peekNextPosition]
             if (peekNextChar == '#') {
                 // change direction
@@ -129,53 +138,44 @@ class Day6 {
             // move step further
             currentPosition = peekNextPosition
             currentChar = map.elements[currentPosition]
+
             if (currentChar != null) {
-                visited.put(currentPosition, currentDirection)
+                visited.add(Pair(currentPosition, currentDirection))
             }
         }
-        return visited.toMap()
+        return visited.distinctBy { (position, _) -> position }
     }
 
     fun isLoop(
         map: Grid<Char>,
         startPosition: Positionm,
-        startChar: Char,
         startDirection: Int,
         obst: Positionm
     ): Boolean {
-        val visited = mutableMapOf<Positionm, Int>()
+        val visited = mutableListOf<Pair<Positionm, Int>>()
         var currentPosition = startPosition
-        var currentChar: Char? = startChar
+        var currentChar: Char? = '^'
         var currentDirection = startDirection
-        val visitedCount = visited.getOrDefault(currentPosition, 0)
-        visited.put(currentPosition, visitedCount + 1)
 
         while (currentChar != null) {// outside of visible map
-            // if peek next char is obsticle
-            val peekNextPosition = when (currentDirection) {
-                0 -> currentPosition.north()
-                1 -> currentPosition.west()
-                2 -> currentPosition.south()
-                3 -> currentPosition.east()
-                else -> error("Shouldn't happen but was $currentDirection")
-            }
+            // if peek next char is obstacle
+            val peekNextPosition = currentPosition.move(currentDirection)
             val peekNextChar = map.elements[peekNextPosition]
             if (peekNextChar == '#' || peekNextPosition == obst) {
                 // change direction
+                val visitedTurnRight = Pair(currentPosition, currentDirection)
+                if (visitedTurnRight in visited) {
+                    // already visited this location, found a loop
+                    return true
+                } else {
+                    visited.add(visitedTurnRight)
+                }
                 currentDirection = (currentDirection + 1) % 4 // loop around
                 continue
             }
             // move step further
             currentPosition = peekNextPosition
             currentChar = map.elements[currentPosition]
-
-            val visitedCount = visited.getOrDefault(currentPosition, 0)
-            if (visitedCount > 3) { // white, grey, black
-                return true
-            }
-            if (currentChar != null) {
-                visited.put(currentPosition, visitedCount + 1)
-            }
         }
         return false
     }
