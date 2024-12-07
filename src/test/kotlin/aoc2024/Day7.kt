@@ -2,6 +2,8 @@ package aoc2024
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import utils.head
+import utils.tail
 import kotlin.test.Test
 import kotlin.time.measureTime
 
@@ -35,29 +37,27 @@ class Day7 {
         println("part1 $duration")
     }
 
-    fun evaluate(target: Long, numbers: List<Long>, equations: List<(Long, Long) -> Long>): Boolean {
+    fun evaluate(target: Long, candidates: List<Long>, operations: List<(Long, Long) -> Long>): Boolean {
         fun evaluate(cur: Long, index: Int): Boolean = when {
             // optimization
             cur > target -> false
-            numbers.size == index -> cur == target
+            candidates.size == index -> cur == target
             // left to right
-            else -> equations.any { equation -> evaluate(equation(cur, numbers[index]), index + 1) }
+            else -> operations.any { operation -> evaluate(operation(cur, candidates[index]), index + 1) }
         }
-        return evaluate(numbers[0], 1)
+        return evaluate(candidates[0], 1)
     }
 
     fun part1(input: List<String>): Long {
-        return input.map { str ->
-            val operator = str.substringBefore(':').toLong()
-            val eq = str.substringAfter(':').split(' ').filter { str -> str.isNotEmpty() }.map { str -> str.toLong() }
-            Pair(operator, eq)
+        return input.map { line ->
+            line.split(": ", " ").map(String::toLong)
         }.also(::println)
-            .filter { (operator, eq) ->
+            .filter { numbers ->
                 // can operator be found
-
-                evaluate(operator, eq, listOf(Long::plus, Long::times))
-            }.sumOf { it.first }
-
+                val target = numbers.head()
+                val candidates = numbers.tail()
+                evaluate(target, candidates, listOf(Long::plus, Long::times))
+            }.sumOf { it.head() }
     }
 
     @Test
@@ -90,15 +90,18 @@ class Day7 {
     }
 
     fun part2(input: List<String>): Long {
-        return input.map { str ->
-            val operator = str.substringBefore(':').toLong()
-            val eq = str.substringAfter(':').split(' ').filter { str -> str.isNotEmpty() }.map { str -> str.toLong() }
-            Pair(operator, eq)
+        return input.map { line ->
+            line.split(": ", " ").map(String::toLong)
         }.also(::println)
-            .filter { (operator, eq) ->
+            .filter { numbers ->
                 // can operator be found
-
-                evaluate(operator, eq, listOf(Long::plus, Long::times, { first, second -> "$first$second".toLong() }))
-            }.sumOf { it.first }
+                val target = numbers.head()
+                val candidates = numbers.tail()
+                evaluate(
+                    target,
+                    candidates,
+                    listOf(Long::plus, Long::times, { first, second -> "$first$second".toLong() })
+                )
+            }.sumOf { it.head() }
     }
 }
