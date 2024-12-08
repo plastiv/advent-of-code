@@ -1,5 +1,6 @@
 package aoc2024
 
+// TODO: row first
 data class Positionm(
     val col: Int,
     val row: Int,
@@ -49,6 +50,8 @@ fun <T> Grid<T>.columIndices() = IntRange(0, colSize - 1)
 fun <T> Grid<T>.rows(): List<List<T>> = this.lines
 
 fun <T> Grid<T>.columns(): List<List<T>> = this.lines.transpose()
+
+fun <T> Grid<T>.inBounds(position: Positionm): Boolean = position.row in rowIndices() && position.col in columIndices()
 
 // flip rows vs columns
 fun <T> List<List<T>>.transpose(): List<List<T>> = (this[0].indices).map { i -> (this.indices).map { j -> this[j][i] } }
