@@ -58,7 +58,6 @@ class Day8 {
             row + rowDistance
         }
 
-
         val newCol = if (col == another.col) {
             // we only flip horizontally
             col
@@ -77,48 +76,30 @@ class Day8 {
     }
 
     fun part1(input: List<String>): Int {
-        val frequencies = mutableMapOf<Positionm, Char>()
+        val antinodes = mutableSetOf<Positionm>()
         val map = input.toCharGrid()
-        println("Map")
-        printMap(map, frequencies)
 
         map.elements.filter { entry -> entry.value != '.' }
             .entries
             .map { entry -> Element(entry.key, entry.value) }
             .groupBy { element -> element.char }
             .map { entry ->
-                val positions = entry.value.map { element -> element.position }
+                val frequencies = entry.value.map { element -> element.position }
 
-                findPairs(positions)
+                findPairs(frequencies)
                     .forEach { (a, b) ->
                         val candidate1 = a.invert(b)
                         if (map.inBounds(candidate1)) {
-                            frequencies.put(candidate1, '#')
+                            antinodes.add(candidate1)
                         }
-                        val candidate2 = b.invert(a)
 
+                        val candidate2 = b.invert(a)
                         if (map.inBounds(candidate2)) {
-                            frequencies.put(candidate2, '#')
+                            antinodes.add(candidate2)
                         }
                     }
             }
-        println("Freqs")
-        printMap(map, frequencies)
-        return frequencies.size
-    }
-
-    fun printMap(elements: Grid<Char>, reqs: Map<Positionm, Char>) {
-        println(elements.columnIndices().joinToString("", transform = Int::toString))
-
-        elements.rowIndices().map { i ->
-            elements.columnIndices().map { j ->
-                if (reqs.containsKey(Positionm(i, j))) {
-                    '#'
-                } else {
-                    elements.elements[Positionm(i, j)]
-                }
-            }.joinToString(separator = "", prefix = "$i", postfix = "$i").also(::println)
-        }
+        return antinodes.size
     }
 
     @Test
@@ -174,10 +155,8 @@ class Day8 {
     }
 
     fun part2(input: List<String>): Int {
-        val frequencies = mutableMapOf<Positionm, Char>()
+        val antinodes = mutableSetOf<Positionm>()
         val map = input.toCharGrid()
-        println("Map")
-        printMap(map, frequencies)
 
         map.elements.filter { entry -> entry.value != '.' }
             .entries
@@ -185,47 +164,39 @@ class Day8 {
             .groupBy { element -> element.char }
             .map { entry ->
 
-                val positions = entry.value.map { element -> element.position }
+                val frequencies = entry.value.map { element -> element.position }
 
-                findFreqs(map, frequencies, positions)
+                findAntinodes(map, frequencies, antinodes)
             }
 
-        println("Freqs")
-        printMap(map, frequencies)
-        return frequencies.size
+        return antinodes.size
     }
 
-    fun findFreqs(
+    fun findAntinodes(
         map: Grid<Char>,
-        frequencies: MutableMap<Positionm, Char>,
-        positions: List<Positionm>,
+        frequencies: List<Positionm>,
+        antinodes: MutableSet<Positionm>,
     ) {
-        for (position in positions) {
-            frequencies.put(position, '#')
-        }
-        val pairs = findPairs(positions)
+        antinodes.addAll(frequencies)
+        val pairs = findPairs(frequencies)
 
-        fun getNextCandidates(a: Positionm, b: Positionm, step: Int = 1): List<Positionm> {
-            val candidate = a.invert(b, step)
-            return if (map.inBounds(candidate)) {
-                listOf(candidate) + getNextCandidates(a, b, step.inc())
+        fun findAntinodeCandidates(a: Positionm, b: Positionm, step: Int = 1): List<Positionm> {
+            val candidate1 = a.invert(b, step)
+            val candidate2 = b.invert(a, step)
+            return if (map.inBounds(candidate1) && map.inBounds(candidate2)) {
+                listOf(candidate1, candidate2) + findAntinodeCandidates(a, b, step.inc())
+            } else if (map.inBounds(candidate1)) {
+                listOf(candidate1) + findAntinodeCandidates(a, b, step.inc())
+            } else if (map.inBounds(candidate2)) {
+                listOf(candidate2) + findAntinodeCandidates(a, b, step.inc())
             } else {
                 emptyList()
             }
         }
-        // get all position pairs
-        // check each pair
-        for ((a, b) in pairs) {
-            val candidates = getNextCandidates(a, b)
-            val candidates2 = getNextCandidates(b, a)
-            for (candidate in candidates + candidates2) {
 
-                val existed = frequencies.put(candidate, '#')
-                if (existed == null) {
-                    println("Adding c $candidate")
-                    printMap(map, frequencies)
-                }
-            }
+        for ((a, b) in pairs) {
+            val candidates = findAntinodeCandidates(a, b)
+            antinodes.addAll(candidates) // deduplicate candidates with Set
         }
     }
 
