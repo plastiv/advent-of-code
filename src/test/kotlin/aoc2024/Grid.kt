@@ -1,26 +1,25 @@
 package aoc2024
 
-// TODO: row first
 data class Positionm(
-    val col: Int,
     val row: Int,
+    val col: Int,
 )
 
-fun Positionm.north() = copy(col, row.dec())
+fun Positionm.north() = copy(row.dec(), col)
 
-fun Positionm.northEast() = copy(col.dec(), row.dec())
+fun Positionm.northEast() = copy(row.dec(), col.dec())
 
-fun Positionm.northWest() = copy(col.inc(), row.dec())
+fun Positionm.northWest() = copy(row.dec(), col.inc())
 
-fun Positionm.east() = copy(col.dec(), row)
+fun Positionm.east() = copy(row, col.dec())
 
-fun Positionm.west() = copy(col.inc(), row)
+fun Positionm.west() = copy(row, col.inc())
 
-fun Positionm.south() = copy(col, row.inc())
+fun Positionm.south() = copy(row.inc(), col)
 
-fun Positionm.southEast() = copy(col.dec(), row.inc())
+fun Positionm.southEast() = copy(row.inc(), col.dec())
 
-fun Positionm.southWest() = copy(col.inc(), row.inc())
+fun Positionm.southWest() = copy(row.inc(), col.inc())
 
 class Grid<T>(
     val elements: Map<Positionm, T>,
@@ -33,9 +32,9 @@ fun List<String>.toCharGrid(): Grid<Char> {
     val lines = this
     val elements =
         buildMap {
-            lines.mapIndexed { row, str ->
-                str.mapIndexed { col, char ->
-                    put(Positionm(col, row), char)
+            lines.mapIndexed { row, line ->
+                line.mapIndexed { col, char ->
+                    put(Positionm(row, col), char)
                 }
             }
         }
@@ -45,13 +44,13 @@ fun List<String>.toCharGrid(): Grid<Char> {
 
 fun <T> Grid<T>.rowIndices() = IntRange(0, rowSize - 1)
 
-fun <T> Grid<T>.columIndices() = IntRange(0, colSize - 1)
+fun <T> Grid<T>.columnIndices() = IntRange(0, colSize - 1)
 
 fun <T> Grid<T>.rows(): List<List<T>> = this.lines
 
 fun <T> Grid<T>.columns(): List<List<T>> = this.lines.transpose()
 
-fun <T> Grid<T>.inBounds(position: Positionm): Boolean = position.row in rowIndices() && position.col in columIndices()
+fun <T> Grid<T>.inBounds(position: Positionm): Boolean = position.row in rowIndices() && position.col in columnIndices()
 
 // flip rows vs columns
 fun <T> List<List<T>>.transpose(): List<List<T>> = (this[0].indices).map { i -> (this.indices).map { j -> this[j][i] } }

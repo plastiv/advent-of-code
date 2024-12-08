@@ -44,37 +44,36 @@ class Day8 {
     data class Element(val position: Positionm, val char: Char)
 
     fun Positionm.invert(another: Positionm, step: Int = 1): Positionm {
-        val newRow = if (this.row == another.row) {
+        val newRow = if (row == another.row) {
             // we only flip vertically
-            this.row
-        } else if (this.row < another.row) {
+            row
+        } else if (row < another.row) {
             // this minus another
-            val rowDistance = abs(another.row - this.row) * step
-            this.row - rowDistance
+            val rowDistance = abs(another.row - row) * step
+            row - rowDistance
         } else {
             // this.row > another.row
             // this add another
-            val rowDistance = abs(another.row - this.row) * step
-            this.row + rowDistance
+            val rowDistance = abs(another.row - row) * step
+            row + rowDistance
         }
 
 
-        val newCol = if (this.col == another.col) {
+        val newCol = if (col == another.col) {
             // we only flip horizontally
-            this.col
-        } else if (this.col < another.col) {
+            col
+        } else if (col < another.col) {
             // this minus another
-            val columnDistance = abs(another.col - this.col) * step
-            this.col - columnDistance
+            val columnDistance = abs(another.col - col) * step
+            col - columnDistance
         } else {
             // this.col > another.col
             // this add another
-            val columnDistance = abs(another.col - this.col) * step
-            this.col + columnDistance
+            val columnDistance = abs(another.col - col) * step
+            col + columnDistance
         }
 
-        return Positionm(newCol, newRow)
-
+        return Positionm(newRow, newCol)
     }
 
     fun part1(input: List<String>): Int {
@@ -109,14 +108,14 @@ class Day8 {
     }
 
     fun printMap(elements: Grid<Char>, reqs: Map<Positionm, Char>) {
-        println(elements.columIndices().joinToString("", transform = Int::toString))
+        println(elements.columnIndices().joinToString("", transform = Int::toString))
 
         elements.rowIndices().map { i ->
-            elements.columIndices().map { j ->
-                if (reqs.containsKey(Positionm(j, i))) {
+            elements.columnIndices().map { j ->
+                if (reqs.containsKey(Positionm(i, j))) {
                     '#'
                 } else {
-                    elements.elements[Positionm(j, i)]
+                    elements.elements[Positionm(i, j)]
                 }
             }.joinToString(separator = "", prefix = "$i", postfix = "$i").also(::println)
         }
