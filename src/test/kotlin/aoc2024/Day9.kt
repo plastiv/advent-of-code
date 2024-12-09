@@ -2,8 +2,11 @@ package aoc2024
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import utils.swap
 import kotlin.test.Test
 import kotlin.time.measureTime
+
+const val EMPTY = -1
 
 class Day9 {
     @Test
@@ -30,36 +33,34 @@ class Day9 {
     fun part1(input: List<String>): Long {
         val blocks = mutableListOf<Int>()
 
-        var fileId = 0
         input.first()
-            .forEachIndexed { index, ch ->
+            .map(Char::digitToInt)
+            .forEachIndexed { index, int ->
                 if (index % 2 == 0) {
                     // file block
-                    repeat(ch.digitToInt()) {
-                        blocks.add(fileId)
+                    repeat(int) {
+                        // index / 2 == fileId
+                        blocks += index / 2
                     }
-                    fileId++
                 } else {
-                    repeat(ch.digitToInt()) {
-                        blocks.add(-1)
+                    repeat(int) {
+                        blocks += EMPTY
                     }
                 }
             }
 
-        var firstEmptyIndex = blocks.indexOfFirst { i -> i == -1 }
-        var lastNonEmptyIndex = blocks.indexOfLast { i -> i != -1 }
+        var firstEmptyIndex = blocks.indexOfFirst { i -> i == EMPTY }
+        var lastNonEmptyIndex = blocks.indexOfLast { i -> i != EMPTY }
         while (firstEmptyIndex <= lastNonEmptyIndex) {
             // take last non-empty, replace with empty
-            val blockValue = blocks[lastNonEmptyIndex]
-            blocks[lastNonEmptyIndex] = -1
-            blocks[firstEmptyIndex] = blockValue
+            blocks.swap(firstEmptyIndex, lastNonEmptyIndex)
             // find first empty, replace with taken
-            firstEmptyIndex = blocks.indexOfFirst { i -> i == -1 }
-            lastNonEmptyIndex = blocks.indexOfLast { i -> i != -1 }
+            firstEmptyIndex = blocks.indexOfFirst { i -> i == EMPTY }
+            lastNonEmptyIndex = blocks.indexOfLast { i -> i != EMPTY }
         }
 
         return blocks.mapIndexed { index, i ->
-            if (i == -1) {
+            if (i == EMPTY) {
                 0L
             } else {
                 (index * i).toLong()
@@ -99,15 +100,16 @@ class Day9 {
 
         var fileId = 0
         input.first()
-            .forEachIndexed { index, ch ->
+            .map(Char::digitToInt)
+            .forEachIndexed { index, int ->
                 if (index % 2 == 0) {
                     // file block
-                    blocks.add(FileBlock(ch.digitToInt(), fileId))
+                    blocks += FileBlock(int, fileId)
 
                     fileId++
                 } else {
                     // empty block
-                    blocks.add(EmptyBlock(ch.digitToInt()))
+                    blocks += EmptyBlock(int)
                 }
             }
 
