@@ -44,33 +44,14 @@ class Day8 {
     data class Element(val position: Positionm, val char: Char)
 
     fun Positionm.invert(another: Positionm, step: Int = 1): Positionm {
-        val newRow = if (row == another.row) {
-            // we only flip vertically
-            row
-        } else if (row < another.row) {
-            // this minus another
-            val rowDistance = abs(another.row - row) * step
-            row - rowDistance
-        } else {
-            // this.row > another.row
-            // this add another
-            val rowDistance = abs(another.row - row) * step
-            row + rowDistance
+        if (this == another) {
+            return this
         }
+        // A, B
+        // C = A + ( (B-A) * 2 )
+        val newRow = this.row + (another.row - this.row) * (1 + step)
 
-        val newCol = if (col == another.col) {
-            // we only flip horizontally
-            col
-        } else if (col < another.col) {
-            // this minus another
-            val columnDistance = abs(another.col - col) * step
-            col - columnDistance
-        } else {
-            // this.col > another.col
-            // this add another
-            val columnDistance = abs(another.col - col) * step
-            col + columnDistance
-        }
+        val newCol = this.col + (another.col - this.col) * (1 + step)
 
         return Positionm(newRow, newCol)
     }
