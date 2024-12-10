@@ -10,14 +10,14 @@ class Day10 {
     fun part1Example() {
         val input =
             $"""
-89010123
-78121874
-87430965
-96549874
-45678903
-32019012
-01329801
-10456732
+            89010123
+            78121874
+            87430965
+            96549874
+            45678903
+            32019012
+            01329801
+            10456732
             """.trimIndent()
                 .lines()
         val result = part1(input)
@@ -29,12 +29,10 @@ class Day10 {
         val lines = fileInput("Day10.txt").readLines()
         val duration = measureTime {
             val result = part1(lines)
-            assertThat(result).isEqualTo(6430446922192)
+            assertThat(result).isEqualTo(737)
         }
         println("part1 $duration")
     }
-
-//    data class Nodem(val position: Position, val value: Char)
 
     fun Map<Positionm, Int>.nearbyWindow(position: Positionm): List<Positionm> {
         return listOf(
@@ -51,7 +49,7 @@ class Day10 {
         }
     }
 
-    fun Map<Positionm, Int>.isConnectedTo(firstPosition: Positionm, another: Positionm): Boolean {
+    fun Map<Positionm, Int>.areConnected(firstPosition: Positionm, another: Positionm): Boolean {
         val firstValue = this[firstPosition]!!
         val secondValue = this[another]!!
         return secondValue - firstValue == 1
@@ -75,7 +73,7 @@ class Day10 {
 
                     grid.elements.nearbyWindow(current)
                         .filter { another ->
-                            grid.elements.isConnectedTo(current, another)
+                            grid.elements.areConnected(current, another)
                         }.filter { another ->
                             // filter out already visited to prevent cycle
                             visited[another] != true
@@ -100,11 +98,18 @@ class Day10 {
     fun part2Example() {
         val input =
             $"""
-
+            89010123
+            78121874
+            87430965
+            96549874
+            45678903
+            32019012
+            01329801
+            10456732
             """.trimIndent()
                 .lines()
         val result = part2(input)
-        assertThat(result).isEqualTo(2858)
+        assertThat(result).isEqualTo(81)
     }
 
     @Test
@@ -112,12 +117,37 @@ class Day10 {
         val lines = fileInput("Day10.txt").readLines()
         val duration = measureTime {
             val result = part2(lines)
-            assertThat(result).isEqualTo(6460170593016)
+            assertThat(result).isEqualTo(1619)
         }
         println("part2 $duration")
     }
 
-    fun part2(input: List<String>): Long {
-        return 0
+    fun part2(input: List<String>): Int {
+        val grid = input.toIntGrid()
+        return grid.elements.filterValues { it == 0 }
+            .map { (position, _) ->
+                val queue = ArrayDeque<Positionm>()
+                queue.add(position)
+
+                val peaks = mutableListOf<Positionm>()
+                while (queue.isNotEmpty()) {
+                    val current = queue.removeFirst()
+
+                    grid.elements.nearbyWindow(current)
+                        .filter { another ->
+                            grid.elements.areConnected(current, another)
+                        }
+                        .forEach { nearby ->
+                            val nearbyValue = grid.elements[nearby]!!
+                            if (nearbyValue == 9) {
+                                peaks.add(nearby)
+                            }else {
+                                queue.add(nearby)
+                            }
+                        }
+                }
+                println("For 0 at $position 9 was ${peaks.size}")
+                return@map peaks.size
+            }.sum()
     }
 }
