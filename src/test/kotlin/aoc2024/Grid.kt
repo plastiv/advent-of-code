@@ -42,6 +42,20 @@ fun List<String>.toCharGrid(): Grid<Char> {
     return Grid(elements, els, lines.size, lines[0].length)
 }
 
+fun List<String>.toIntGrid(): Grid<Int> {
+    val lines = this
+    val elements =
+        buildMap {
+            lines.mapIndexed { row, line ->
+                line.mapIndexed { col, char ->
+                    put(Positionm(row, col), char.digitToInt())
+                }
+            }
+        }
+    val els = lines.map { it.map(Char::digitToInt).toList() }
+    return Grid(elements, els, lines.size, lines[0].length)
+}
+
 fun <T> Grid<T>.rowIndices() = IntRange(0, rowSize - 1)
 
 fun <T> Grid<T>.columnIndices() = IntRange(0, colSize - 1)
