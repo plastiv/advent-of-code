@@ -27,26 +27,9 @@ class Day11 {
         println("part1 $duration")
     }
 
-    fun part1(input: List<String>): Int {
-        val stones = input.first().split(' ').map(String::toInt)
-        var currentStones = stones.map { it.toLong() }
-        repeat(25) {
-            val newList = buildList {
-                currentStones.forEach {
-                    if (it == 0L) {
-                        add(1L)
-                    } else if (it.toString().length % 2 == 0) {
-                        val str = it.toString()
-                        add(str.substring(0, str.length / 2).toLong())
-                        add(str.substring(str.length / 2, str.length).toLong())
-                    } else {
-                        add(it * 2024)
-                    }
-                }
-            }
-            currentStones = newList
-        }
-        return currentStones.size
+    fun part1(input: List<String>): Long {
+        val stones = input.first().split(' ').map(String::toLong)
+        return stones.sumOf { blink(it, 24) }
     }
 
     @Test
@@ -76,12 +59,12 @@ class Day11 {
 //        1036288 7 2 20 24 4048 1 4048 8096 28 67 60 32
 //        After 6 blinks:
 //        2097446912 14168 4048 2 0 2 4 40 48 2024 40 48 80 96 2 8 6 7 6 0 3 2
-        assertThat(count(0, 125, 1)).isEqualTo(1) // 1 iteration
-        assertThat(count(1, 125, 1)).isEqualTo(2) // 2 iterations
-        assertThat(count(2, 125, 1)).isEqualTo(2) // 3 iterations
-        assertThat(count(3, 125, 1)).isEqualTo(3) // 4 iterations
-        assertThat(count(4, 125, 1)).isEqualTo(5) // 5 iterations
-        assertThat(count(5, 125, 1)).isEqualTo(7) // 6 iterations
+        assertThat(blink(125, 0)).isEqualTo(1) // 1 iteration
+        assertThat(blink(125, 1)).isEqualTo(2) // 2 iterations
+        assertThat(blink(125, 2)).isEqualTo(2) // 3 iterations
+        assertThat(blink(125, 3)).isEqualTo(3) // 4 iterations
+        assertThat(blink(125, 4)).isEqualTo(5) // 5 iterations
+        assertThat(blink(125, 5)).isEqualTo(7) // 6 iterations
     }
 
     @Test
@@ -95,42 +78,34 @@ class Day11 {
     }
 
     val cache = mutableMapOf<Pair<Long, Int>, Long>()
-    tailrec fun count(iter: Int, number: Long, acc: Long): Long {
-        val key = Pair(number, iter)
-        val hit = cache[key]
-        if (hit != null) {
-            return hit
-        } else {
 
+    fun blink(number: Long, times: Int): Long {
+        return cache.getOrPut(number to times) {
             val numberStr = number.toString()
-            return if (iter == 0) {
-                // last round
-                if (number == 0L) {
-                    acc
-                } else if (numberStr.length % 2 == 0) {
-                    acc + 1
-                } else {
-                    acc
+            if (times == 0) { // last round
+                when {
+                    number == 0L -> 1
+                    numberStr.length % 2 == 0 -> 2
+                    else -> 1
                 }
             } else {
-                if (number == 0L) {
-                    acc + count(iter.dec(), 1L, 0)
-                } else if (numberStr.length % 2 == 0) {
-                    val str = numberStr
-                    acc + count(iter.dec(), str.substring(0, str.length / 2).toLong(), 0) +
-                            count(iter.dec(), str.substring(str.length / 2, str.length).toLong(), 0) + 1
-                } else {
-                    acc + count(iter.dec(), number * 2024, 0)
+                when {
+                    number == 0L -> blink(1, times.dec())
+                    numberStr.length % 2 == 0 -> {
+                        val left = numberStr.substring(0, numberStr.length / 2).toLong()
+                        val right = numberStr.substring(numberStr.length / 2, numberStr.length).toLong()
+                        blink(left, times.dec()) + blink(right, times.dec())
+                    }
+
+                    else -> blink(number * 2024, times.dec())
                 }
-            }.also {
-                cache.put(key, it)
             }
         }
     }
 
     fun part2(input: List<String>, maxIter: Int): Long {
-        val stones = input.first().split(' ').map(String::toInt)
+        val stones = input.first().split(' ').map(String::toLong)
 
-        return stones.sumOf { count(maxIter, it.toLong(), 1) }
+        return stones.sumOf { blink(it, maxIter) }
     }
 }
