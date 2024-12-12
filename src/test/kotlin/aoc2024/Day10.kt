@@ -56,7 +56,7 @@ class Day10 {
                     val current = queue.removeFirst()
                     visited.put(current, true)
 
-                    grid.nearbyWindow(current)
+                    grid.neighbors4(current)
                         .filter { another ->
                             grid.elements.areConnected(current, another)
                         }.filter { another ->
@@ -118,7 +118,7 @@ class Day10 {
                 while (queue.isNotEmpty()) {
                     val current = queue.removeFirst()
 
-                    grid.nearbyWindow(current)
+                    grid.neighbors4(current)
                         .filter { another ->
                             grid.elements.areConnected(current, another)
                         }

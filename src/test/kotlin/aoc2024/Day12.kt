@@ -71,7 +71,7 @@ class Day12 {
     ): Area =
         listOf(startPosition) +
             this
-                .nearbyWindow(startPosition)
+                .neighbors4(startPosition)
                 .filter { another ->
                     this.elements.areConnected2(startPosition, another)
                 }.filter { another ->
@@ -86,7 +86,7 @@ class Day12 {
         area.sumOf { position ->
             4 -
                 this
-                    .nearbyWindow(position)
+                    .neighbors4(position)
                     .filter { another ->
                         this.elements.areConnected2(position, another)
                     }.size

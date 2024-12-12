@@ -66,20 +66,15 @@ fun <T> Grid<T>.columns(): List<List<T>> = this.lines.transpose()
 
 fun <T> Grid<T>.inBounds(position: Positionm): Boolean = position.row in rowIndices() && position.col in columnIndices()
 
-fun <T> Grid<T>.nearbyWindow(position: Positionm): List<Positionm> {
-    return listOf(
+fun <T> Grid<T>.neighbors4(position: Positionm): List<Positionm> =
+    listOf(
         position.north(),
         position.east(),
         position.west(),
         position.south(),
-    ).mapNotNull { position ->
-        return@mapNotNull if (this.elements[position] != null) {
-            position
-        } else {
-            null
-        }
+    ).filter { position ->
+        this.elements[position] != null
     }
-}
 
 // flip rows vs columns
 fun <T> List<List<T>>.transpose(): List<List<T>> = (this[0].indices).map { i -> (this.indices).map { j -> this[j][i] } }
