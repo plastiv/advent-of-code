@@ -34,21 +34,6 @@ class Day10 {
         println("part1 $duration")
     }
 
-    fun Map<Positionm, Int>.nearbyWindow(position: Positionm): List<Positionm> {
-        return listOf(
-            position.north(),
-            position.east(),
-            position.west(),
-            position.south(),
-        ).mapNotNull { position ->
-            return@mapNotNull if (this[position] != null) {
-                position
-            } else {
-                null
-            }
-        }
-    }
-
     fun Map<Positionm, Int>.areConnected(firstPosition: Positionm, another: Positionm): Boolean {
         val firstValue = this[firstPosition]!!
         val secondValue = this[another]!!
@@ -71,7 +56,7 @@ class Day10 {
                     val current = queue.removeFirst()
                     visited.put(current, true)
 
-                    grid.elements.nearbyWindow(current)
+                    grid.nearbyWindow(current)
                         .filter { another ->
                             grid.elements.areConnected(current, another)
                         }.filter { another ->
@@ -133,7 +118,7 @@ class Day10 {
                 while (queue.isNotEmpty()) {
                     val current = queue.removeFirst()
 
-                    grid.elements.nearbyWindow(current)
+                    grid.nearbyWindow(current)
                         .filter { another ->
                             grid.elements.areConnected(current, another)
                         }
