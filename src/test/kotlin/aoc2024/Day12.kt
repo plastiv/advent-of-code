@@ -68,8 +68,8 @@ class Day12 {
     fun <T> Grid<T>.createAreaFrom(
         startPosition: Positionm,
         visited: MutableSet<Positionm>,
-    ): Area {
-        val nearbyList =
+    ): Area =
+        listOf(startPosition) +
             this
                 .nearbyWindow(startPosition)
                 .filter { another ->
@@ -81,10 +81,6 @@ class Day12 {
                     visited.add(nearby)
                     createAreaFrom(nearby, visited)
                 }.flatten()
-        val newList = nearbyList.toMutableList() + startPosition
-//        val newList = nearbyList.toMutableList()
-        return newList
-    }
 
     fun <T> Grid<T>.fenceCount(area: Area): Int =
         area.sumOf { position ->
@@ -98,7 +94,6 @@ class Day12 {
 
     fun part1(input: List<String>): Int {
         val visited = mutableSetOf<Positionm>()
-
         val charGrid = input.toCharGrid()
         return buildList {
             charGrid
@@ -191,92 +186,56 @@ class Day12 {
         println("part2 $duration")
     }
 
-    fun List<Positionm>.countContinious(): Int {
-        if (size == 1) return 1
-        return this
-            .windowed(2)
-            .count { (first, second) ->
-                abs(first.row - second.row) > 1 ||
-                    abs(first.col - second.col) > 1
-            } + 1
-    }
-
-    fun List<Positionm>.countHorizontalEdges(): Int {
-        if (size == 1) return 1
-        return this
-            .groupBy { it.row }
-            .values
-            .sumOf {
-                1 +
-                    it
-                        .windowed(2)
-                        .count { (first, second) ->
+    fun List<Positionm>.countHorizontalEdges(): Int =
+        if (size == 1) {
+            1
+        } else {
+            this
+                .groupBy { it.row }
+                .values
+                .sumOf {
+                    1 +
+                        it.windowed(2).count { (first, second) ->
                             abs(second.col - first.col) > 1
                         }
-            }
-    }
-
-    fun List<Positionm>.countVerticalEdges(): Int {
-        if (size == 1) return 1
-        return this
-            .groupBy { it.col }
-            .values
-            .sumOf {
-                1 +
-                    it
-                        .windowed(2)
-                        .count { (first, second) ->
-                            abs(second.row - first.row) > 1
-                        }
-            }
-    }
+                }
+        }
 
     fun <T> Grid<T>.fenceCount2(area: Area): Int {
-        val northFences = mutableSetOf<Positionm>()
-        val westFences = mutableSetOf<Positionm>()
-        val southFences = mutableSetOf<Positionm>()
-        val eastFences = mutableSetOf<Positionm>()
+        val northFences = mutableListOf<Positionm>()
+        val southFences = mutableListOf<Positionm>()
         area.forEach { posInArea ->
             if (!area.contains(posInArea.north())) {
                 northFences.add(posInArea.north())
-            }
-            if (!area.contains(posInArea.west())) {
-                westFences.add(posInArea.west())
-            }
-            if (!area.contains(posInArea.east())) {
-                eastFences.add(posInArea.east())
             }
             if (!area.contains(posInArea.south())) {
                 southFences.add(posInArea.south())
             }
         }
         check(northFences.isNotEmpty())
-        check(westFences.isNotEmpty())
         check(southFences.isNotEmpty())
-        check(eastFences.isNotEmpty())
 
-        return northFences.sortedBy { it.row }.countHorizontalEdges() +
-            westFences.sortedBy { it.col }.countVerticalEdges() +
-            southFences.sortedBy { it.row }.countHorizontalEdges() +
-            eastFences.sortedBy { it.col }.countVerticalEdges()
+        // every vertical fence is matching horizontal one because of 90 degree shapes
+        // so we count only half
+        return 2 * (northFences.countHorizontalEdges() + southFences.countHorizontalEdges())
     }
 
     fun part2(input: List<String>): Int {
         val visited = mutableSetOf<Positionm>()
 
         val charGrid = input.toCharGrid()
-        return buildList {
-            charGrid
-                .elements
-                .forEach {
-                    if (it.key !in visited) {
-                        add(it.value to charGrid.createAreaFrom(it.key, visited).toSet().toList())
-                    }
+        return charGrid
+            .elements
+            .mapNotNull {
+                if (it.key !in visited) {
+                    it.value to charGrid.createAreaFrom(it.key, visited).toSet().toList()
+                } else {
+                    null
                 }
-        }.sumOf { (char, area) ->
-            val fenceCount = charGrid.fenceCount2(area.sortedWith(compareBy<Positionm>({ it.row }, { it.col })))
-            println("$char size ${area.size} fence $fenceCount")
-            fenceCount * area.size
-        }
+            }.sumOf { (char, area) ->
+                val fenceCount = charGrid.fenceCount2(area.sortedWith(compareBy<Positionm>({ it.row }, { it.col })))
+                println("$char size ${area.size} fence $fenceCount")
+                fenceCount * area.size
+            }
     }
 }
