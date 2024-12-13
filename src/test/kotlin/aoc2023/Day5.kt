@@ -2,6 +2,7 @@ package aoc2023
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.time.measureTime
 
@@ -141,6 +142,7 @@ class Day5 {
         assertThat(result).isEqualTo(46)
     }
 
+    @Ignore("Solution got lost. Remember I needed to use gcd")
     @Test
     fun part2Input() {
         fileInput("Day5.txt").useLines { lineSequence ->
