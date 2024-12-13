@@ -5,16 +5,11 @@ import assertk.assertions.isEqualTo
 import org.junit.jupiter.api.Test
 import kotlin.time.measureTime
 
-typealias Button = Pair<Int, Int>
-typealias ButtonL = Pair<Long, Long>
+val <X, Y> Pair<X, Y>.x
+    get() = this.first
 
-fun Button.x() = this.first
-
-fun ButtonL.x() = this.first
-
-fun Button.y() = this.second
-
-fun ButtonL.y() = this.second
+val <X, Y> Pair<X, Y>.y
+    get() = this.second
 
 class Day13 {
     @Test
@@ -53,39 +48,7 @@ class Day13 {
         println("part1 $duration")
     }
 
-    fun part1(input: List<String>): Int {
-        return input
-            .chunked(4)
-            .map { (buttonA, buttonB, prize, _) ->
-                val buttonAx = buttonA.substringAfter("Button A: X+").substringBefore(", Y+").toInt()
-                val buttonAy = buttonA.substringAfter("Y+").toInt()
-                val buttonA = buttonAx to buttonAy
-                val buttonBx = buttonB.substringAfter("Button B: X+").substringBefore(", Y+").toInt()
-                val buttonBy = buttonB.substringAfter("Y+").toInt()
-                val buttonB = buttonBx to buttonBy
-                val prizeX = prize.substringAfter("Prize: X=").substringBefore(", Y=").toInt()
-                val prizeY = prize.substringAfter(", Y=").toInt()
-                val prize = prizeX to prizeY
-                Triple(buttonA, buttonB, prize)
-            }.also(::println)
-            .mapNotNull { (buttonA: Button, buttonB: Button, prize: Button) ->
-                for (a in 0..100) {
-                    val tmpAX = buttonA.x() * a
-                    val tmpAY = buttonA.y() * a
-                    for (b in 0..100) {
-                        val tmpBX = buttonB.x() * b
-                        val tmpBY = buttonB.y() * b
-                        if (tmpAX + tmpBX == prize.x() && tmpAY + tmpBY == prize.y()) {
-                            println("found w: $a $b")
-                            return@mapNotNull a to b
-                        }
-                    }
-                }
-                return@mapNotNull null
-            }.sumOf { (a, b) ->
-                a * 3 + b
-            }
-    }
+    fun part1(input: List<String>): Long = solution(input, 0)
 
     @Test
     fun part2Example1() {
@@ -109,7 +72,7 @@ class Day13 {
             """.trimIndent()
                 .lines()
         val result = part2(input)
-        assertThat(result).isEqualTo(480)
+        assertThat(result).isEqualTo(875318608908)
     }
 
     @Test
@@ -118,48 +81,43 @@ class Day13 {
         val duration =
             measureTime {
                 val result = part2(lines)
-                assertThat(result).isEqualTo(36571)
+                assertThat(result).isEqualTo(85527711500010)
             }
         println("part2 $duration")
     }
 
-    fun part2(input: List<String>): Long {
-        val result = (94 * 5400 - 34 * 8400) / (67 * 94 - 22 * 34)
-        val result2 = (22 * 5400 - 67 * 8400) / (22 * 34 - 94 * 67)
+    fun part2(input: List<String>): Long = solution(input, 10000000000000)
 
-        println("res $result")
-        println("res $result2")
-        return input
-            .chunked(4)
-            .map { (buttonA, buttonB, prize, _) ->
-                val buttonAx = buttonA.substringAfter("Button A: X+").substringBefore(", Y+").toLong()
-                val buttonAy = buttonA.substringAfter("Y+").toLong()
-                val buttonA = buttonAx to buttonAy
-                val buttonBx = buttonB.substringAfter("Button B: X+").substringBefore(", Y+").toLong()
-                val buttonBy = buttonB.substringAfter("Y+").toLong()
-                val buttonB = buttonBx to buttonBy
-                val prizeX = prize.substringAfter("Prize: X=").substringBefore(", Y=").toLong()
-                val prizeY = prize.substringAfter(", Y=").toLong()
-                // 10000000000000
-                // 10000000008400
-                val prize = 10000000000000 + prizeX to 10000000000000 + prizeY
-//                val prize = prizeX to prizeY
-                Triple(buttonA, buttonB, prize)
-            }.also(::println)
-            .mapNotNull { (buttonA: ButtonL, buttonB: ButtonL, prize: ButtonL) ->
-                val b =
-                    (buttonA.x() * prize.y() - buttonA.y() * prize.x()) /
-                        (buttonB.y() * buttonA.x() - buttonB.x() * buttonA.y().toDouble())
-                val a =
-                    (buttonB.x() * prize.y() - buttonB.y() * prize.x()) /
-                        (buttonB.x() * buttonA.y() - buttonA.x() * buttonB.y().toDouble())
-                if (a.rem(1) == 0.0 && b.rem(1) == 0.0) {
-                    return@mapNotNull Pair(a.toLong(), b.toLong())
-                } else {
-                    return@mapNotNull null
-                }
-            }.sumOf { (a, b) ->
-                a * 3 + b
+    private fun solution(
+        input: List<String>,
+        prizeBonus: Long,
+    ) = input
+        .chunked(4)
+        .map { (lineA, lineB, lineP) ->
+            val ax = lineA.substringAfter("Button A: X+").substringBefore(", Y+").toInt()
+            val ay = lineA.substringAfter("Y+").toInt()
+            val bx = lineB.substringAfter("Button B: X+").substringBefore(", Y+").toInt()
+            val by = lineB.substringAfter("Y+").toInt()
+            val px = lineP.substringAfter("Prize: X=").substringBefore(", Y=").toInt()
+            val py = lineP.substringAfter(", Y=").toInt()
+            Triple(ax to ay, bx to by, prizeBonus + px to prizeBonus + py)
+        }.mapNotNull { (a, b, p) ->
+            // algebraic equation
+            // find A and B, rest are constants
+            // A * ax + B * bx = px
+            // A * ay + B * by = py
+            val timesA =
+                (a.x * p.y - a.y * p.x) /
+                    (b.y * a.x - b.x * a.y.toDouble())
+            val timesB =
+                (b.x * p.y - b.y * p.x) /
+                    (b.x * a.y - a.x * b.y.toDouble())
+            if (timesB.rem(1) == 0.0 && timesA.rem(1) == 0.0) { // is division result a whole number?
+                return@mapNotNull Pair(timesB.toLong(), timesA.toLong())
+            } else {
+                return@mapNotNull null
             }
-    }
+        }.sumOf { (a, b) ->
+            a * 3 + b
+        }
 }
