@@ -65,8 +65,7 @@ class Day14 {
                         .split(',')
                         .map(String::toInt)
                 Pair(prow to pcol, vrow to vcol)
-            }.also(::println)
-            .map { (position, velocity) ->
+            }.map { (position, velocity) ->
                 val (prow, pcol) = position
                 val (vrow, vcol) = velocity
                 // t=0 4 (4 - 3 * 0) 4 - 0
@@ -92,11 +91,9 @@ class Day14 {
                 val prettyCol = if (col < 0) colSize - abs(col) else col
 
                 prettyRow to prettyCol
-            }.also(::println)
-            .filterNot { (row, col) ->
+            }.filterNot { (row, col) ->
                 row == (rowSize - 1) / 2 || col == (colSize - 1) / 2
-            }.also(::println)
-            .groupBy { (row, col) ->
+            }.groupBy { (row, col) ->
                 val part1 =
                     if (row < (rowSize - 1) / 2) {
                         0
@@ -119,10 +116,22 @@ class Day14 {
     fun part2Example1() {
         val input =
             """
+            p=0,4 v=3,-3
+            p=6,3 v=-1,-3
+            p=10,3 v=-1,2
+            p=2,0 v=2,-1
+            p=0,0 v=1,3
+            p=3,0 v=-2,-2
+            p=7,6 v=-1,-3
+            p=3,0 v=-1,-2
+            p=9,3 v=2,3
+            p=7,3 v=-1,2
+            p=2,4 v=2,-3
+            p=9,5 v=-3,-3
             """.trimIndent()
                 .lines()
-        val result = part2(input)
-        assertThat(result).isEqualTo(0)
+        val result = part2(input, 7, 11)
+        assertThat(result).isEqualTo(1)
     }
 
     @Test
@@ -130,11 +139,87 @@ class Day14 {
         val lines = fileInput("Day14.txt").readLines()
         val duration =
             measureTime {
-                val result = part2(lines)
-                assertThat(result).isEqualTo(0)
+                val result = part2(lines, 103, 101)
+                assertThat(result).isEqualTo(8168)
             }
         println("part2 $duration")
     }
 
-    fun part2(input: List<String>): Long = 0
+    data class Position(
+        val row: Int,
+        val col: Int,
+    )
+
+    data class Velocity(
+        val row: Int,
+        val col: Int,
+    )
+
+    data class Robot(
+        val current: Position,
+        val initial: Position,
+        val velocity: Velocity,
+        val times: Int,
+    )
+
+    fun List<Pair<Pair<Int, Int>, Pair<Int, Int>>>.toRobots() =
+        this
+            .map { (position, velocity) ->
+                val (prow, pcol) = position
+                val (vrow, vcol) = velocity
+                val initial = Position(prow, pcol)
+                val velocity = Velocity(vrow, vcol)
+                Robot(initial, initial, velocity, 0)
+            }
+
+    fun List<Robot>.times(
+        seconds: Int,
+        rowSize: Int = 103,
+        colSize: Int = 101,
+    ) = this
+        .map { (_, initial, velocity, _) ->
+            val drow = initial.row + velocity.row * seconds
+            val dcol = initial.col + velocity.col * seconds
+
+            val row = drow % rowSize
+            val col = dcol % colSize
+
+            val prettyRow = if (row < 0) rowSize - abs(row) else row
+            val prettyCol = if (col < 0) colSize - abs(col) else col
+
+            Robot(Position(prettyRow, prettyCol), initial, velocity, seconds)
+        }
+
+    fun part2(
+        input: List<String>,
+        rowSize: Int,
+        colSize: Int,
+    ): Int {
+        val robots =
+            input
+                .map { str ->
+                    val (pcol, prow) =
+                        str
+                            .substringAfter("p=")
+                            .substringBefore(" v=")
+                            .split(',')
+                            .map(String::toInt)
+                    val (vcol, vrow) =
+                        str
+                            .substringAfter(" v=")
+                            .split(',')
+                            .map(String::toInt)
+                    Pair(prow to pcol, vrow to vcol)
+                }.toRobots()
+
+        var times = 0
+        while (true) {
+            val iter = robots.times(times, rowSize, colSize)
+            val distinctSize = iter.distinctBy { it.current.row to it.current.col }.size
+            if (iter.size == distinctSize) {
+                return times
+            }
+            times++
+        }
+    }
 }
