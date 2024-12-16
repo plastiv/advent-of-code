@@ -3,7 +3,9 @@ package aoc2024
 data class Positionm(
     val row: Int,
     val col: Int,
-)
+) {
+    override fun toString() = "($row, $col)"
+}
 
 fun Positionm.north() = copy(row.dec(), col)
 
@@ -11,9 +13,9 @@ fun Positionm.northEast() = copy(row.dec(), col.dec())
 
 fun Positionm.northWest() = copy(row.dec(), col.inc())
 
-fun Positionm.east() = copy(row, col.dec())
+fun Positionm.east() = copy(row, col.inc())
 
-fun Positionm.west() = copy(row, col.inc())
+fun Positionm.west() = copy(row, col.dec())
 
 fun Positionm.south() = copy(row.inc(), col)
 
@@ -22,11 +24,19 @@ fun Positionm.southEast() = copy(row.inc(), col.dec())
 fun Positionm.southWest() = copy(row.inc(), col.inc())
 
 class Grid<T>(
-    val elements: Map<Positionm, T>,
+    val elements: MutableMap<Positionm, T>,
     val lines: List<List<T>>,
     val rowSize: Int,
     val colSize: Int,
-)
+) {
+    override fun toString(): String =
+        rowIndices().joinToString("\n") { i ->
+            columnIndices()
+                .map { j ->
+                    elements[Positionm(i, j)]
+                }.joinToString("")
+        }
+}
 
 fun List<String>.toCharGrid(): Grid<Char> {
     val lines = this
@@ -39,7 +49,7 @@ fun List<String>.toCharGrid(): Grid<Char> {
             }
         }
     val els = lines.map { it.toList() }
-    return Grid(elements, els, lines.size, lines[0].length)
+    return Grid(elements.toMutableMap(), els, lines.size, lines[0].length)
 }
 
 fun List<String>.toIntGrid(): Grid<Int> {
@@ -53,7 +63,7 @@ fun List<String>.toIntGrid(): Grid<Int> {
             }
         }
     val els = lines.map { it.map(Char::digitToInt).toList() }
-    return Grid(elements, els, lines.size, lines[0].length)
+    return Grid(elements.toMutableMap(), els, lines.size, lines[0].length)
 }
 
 fun <T> Grid<T>.rowIndices() = IntRange(0, rowSize - 1)
