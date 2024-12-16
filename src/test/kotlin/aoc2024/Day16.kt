@@ -65,7 +65,7 @@ class Day16 {
         val duration =
             measureTime {
                 val result = part1(lines)
-                assertThat(result).isEqualTo(0) // 79412 is too high
+                assertThat(result).isEqualTo(79404) // 79412 is too high
             }
         println("part1 $duration")
     }
@@ -80,14 +80,14 @@ class Day16 {
     fun Grid<Char>.dijkstraWithLoops(start: Positionm): Map<Positionm, Int> {
         val distances = mutableMapOf<Positionm, Int>().withDefault { Int.MAX_VALUE }
         val priorityQueue = PriorityQueue<Triple<Positionm, Int, Direction>>(compareBy { it.second })
-        val visited = mutableSetOf<Pair<Positionm, Int>>()
+        val visited = mutableSetOf<Triple<Positionm, Int, Direction>>()
 
-        priorityQueue.add(Triple(start, 0, Direction.E)) // TODO: East
+        priorityQueue.add(Triple(start, 0, Direction.E))
         distances[start] = 0
 
         while (priorityQueue.isNotEmpty()) {
             val (node, currentDist, currentDirection) = priorityQueue.poll()
-            if (visited.add(node to currentDist)) {
+            if (visited.add(Triple(node, currentDist, currentDirection))) {
                 this
                     .neighbors4(node)
                     .filterNot { this.elements[it] == '#' }
@@ -144,8 +144,8 @@ class Day16 {
                         return@map if (distance == null) {
                             "  "
                         } else {
-                            val displayDistance = distance / 1000
-                            val distanceStr = displayDistance.toString()
+                            val displayDistance = distance / 100
+                            val distanceStr = distance.toString()
                             when (distanceStr.length) {
                                 1 -> " $distanceStr"
                                 2 -> "$distanceStr"
