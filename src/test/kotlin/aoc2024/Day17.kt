@@ -4,6 +4,7 @@ import aoc2024.Instruction.*
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
+import jdk.internal.module.DefaultRoots.compute
 import org.junit.jupiter.api.Test
 import kotlin.math.pow
 import kotlin.time.measureTime
@@ -240,37 +241,41 @@ Program: 0,1,5,4,3,0
     }
 
     fun part2(input: List<String>): Long {
-//        var registerA = 0L
-//        while (registerA < 50_000) {
-//            println(compute(registerA).joinToString("").toLong(8))
-//            registerA++
-//        }
-
-        val registerAValue =
-            binarySearchOnRotatedArraysWithDuplicateElements(
-                listOf(2, 4, 1, 1, 7, 5, 1, 5, 4, 0, 5, 5, 0, 3, 3, 0)
-//                    .reversed()
-                    .joinToString("")
-                    .toLong(8),
-                0,
-                Long.MAX_VALUE,
-                -1,
-            ) { registerA ->
-
-                val compute = compute(registerA)
-//                if (compute.size > 19) {
-//                    return@binarySearchOnRotatedArraysWithDuplicateElements Long.MAX_VALUE
-//                } else {
-                val toLong =
-                    compute
-//                        .reversed()
-                        .joinToString("")
-                        .toLong(8)
-                println(toLong)
-                return@binarySearchOnRotatedArraysWithDuplicateElements toLong
-//                }
+        var registerA = 300_000L
+        while (registerA < 600_000) {
+            val message = compute(registerA).joinToString("")
+            if (message.startsWith("24117")) {
+                println("$registerA to $message")
             }
-        return registerAValue
+            registerA++
+        }
+
+//        val registerAValue =
+//            binarySearchOnRotatedArraysWithDuplicateElements(
+//                listOf(2, 4, 1, 1, 7, 5, 1, 5, 4, 0, 5, 5, 0, 3, 3, 0)
+// //                    .reversed()
+//                    .joinToString("")
+//                    .toLong(8),
+//                0,
+//                Long.MAX_VALUE,
+//                -1,
+//            ) { registerA ->
+//
+//                val compute = compute(registerA)
+// //                if (compute.size > 19) {
+// //                    return@binarySearchOnRotatedArraysWithDuplicateElements Long.MAX_VALUE
+// //                } else {
+//                val toLong =
+//                    compute
+// //                        .reversed()
+//                        .joinToString("")
+//                        .toLong(8)
+//                println(toLong)
+//                return@binarySearchOnRotatedArraysWithDuplicateElements toLong
+// //                }
+//            }
+        return 0
+//        return registerAValue
     }
 
     fun compute(registerA: Long): List<Int> {
