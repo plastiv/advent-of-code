@@ -117,41 +117,42 @@ class Day16 {
         }
 
     fun Grid<Char>.dijkstraWithLoops(start: Positionm): Map<Pair<Positionm, Direction>, Int> {
+        var visited = mutableSetOf<Pair<Positionm, Direction>>()
         val distances = mutableMapOf<Pair<Positionm, Direction>, Int>().withDefault { Int.MAX_VALUE }
-        val priorityQueue = PriorityQueue<Pair<Pair<Positionm, Direction>, Int>>(compareBy { it.second })
-        val visited = mutableSetOf<Pair<Positionm, Direction>>()
-
-        priorityQueue.add((start to Direction.E) to 0)
+        val queue: Queue<Pair<Positionm, Direction>> = LinkedList<Pair<Positionm, Direction>>()
+        queue.add(start to Direction.E)
         distances[start to Direction.E] = 0
-
-        while (priorityQueue.isNotEmpty()) {
-            val (node, currentDist) = priorityQueue.poll()
-            val (position, direction) = node
-            if (visited.add(position to direction)) {
-                val neighbors =
-                    buildList {
-                        addAll(position.neighborsWithWeight(direction))
-                        val (neighborP, neighborD) =
-                            when (direction) {
-                                Direction.N -> position.north() to Direction.S
-                                Direction.E -> position.east() to Direction.W
-                                Direction.S -> position.south() to Direction.N
-                                Direction.W -> position.west() to Direction.E
-                            }
-                        if (this@dijkstraWithLoops.elements[neighborP] != '#') {
-                            add(Pair(Pair(neighborP, neighborD), 1))
+        while (queue.isNotEmpty()) {
+            val (position, direction) = queue.poll()
+            val nodeDistance = distances.getOrDefault(position to direction, Int.MAX_VALUE)
+            // find neighbors
+            val neighbors =
+                buildList {
+                    position
+                        .neighborsWithWeight(direction)
+//                        .filter { this@countAllShorts.containsKey(it) } // TODO: what is this
+//                        .filterNot { it.first in visited }
+                        .forEach { add(it) }
+                    val neighbor =
+                        when (direction) {
+                            Direction.N -> position.north() to Direction.S
+                            Direction.E -> position.east() to Direction.W
+                            Direction.S -> position.south() to Direction.N
+                            Direction.W -> position.west() to Direction.E
                         }
+                    if (this@dijkstraWithLoops.elements[neighbor.first] != '#') {
+                        add(neighbor to 1)
                     }
+                }
 
-                neighbors
-                    .forEach { (node, weight) ->
-                        val (adjacentP, adjacentD) = node
-                        val totalDist = currentDist + weight
-                        if (totalDist < distances.getValue(adjacentP to adjacentD)) {
-                            distances[adjacentP to adjacentD] = totalDist
-                            priorityQueue.add((adjacentP to adjacentD) to totalDist)
-                        }
-                    }
+            neighbors.forEach { (node, distance) ->
+                val totalDistance = nodeDistance + distance
+                // filter distance less than current
+                if (totalDistance < distances.getOrDefault(node, Int.MAX_VALUE)) {
+                    distances[node] = totalDistance
+                    visited.add(node)
+                    queue.add(node)
+                }
             }
         }
         return distances
@@ -246,6 +247,7 @@ class Day16 {
                 val result = part2(lines)
                 assertThat(result).isEqualTo(0) // 464 is too high
                 // 463 other person input
+                // 462 is too high
             }
         println("part2 $duration")
     }
@@ -259,13 +261,13 @@ class Day16 {
 //        queue.add(start to Direction.W)
         while (queue.isNotEmpty()) {
             val (position, direction) = queue.poll()
-            val nodeDistance = this.getOrDefault(position to direction, Int.MAX_VALUE)
+            val nodeDistance = this[position to direction]!!
             // find neighbors
             val neighbors =
                 buildList {
                     position
                         .neighbors(direction)
-                        .filter { this@countAllShorts.containsKey(it) }
+//                        .filter { this@countAllShorts.containsKey(it) }
                         .filterNot { it in visited }
                         .forEach { add(it) }
                     val neighbor =
@@ -281,7 +283,7 @@ class Day16 {
                 }
 
             neighbors.forEach { candidate ->
-                val distance = this.getOrDefault(candidate, Int.MAX_VALUE)
+                val distance = this[candidate]!!
                 // filter distance less than current
                 if (distance <= nodeDistance) {
                     visited.add(candidate)
