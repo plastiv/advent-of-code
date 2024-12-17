@@ -215,72 +215,61 @@ Program: 0,1,5,4,3,0
     }
 
     fun part2Sample(input: List<String>): Long {
-        var registerA = 0L
-        while (true) {
-            val computer =
-                Computer(
-                    registerA,
-                    0,
-                    0,
-                    listOf(0, 3, 5, 4, 3, 0),
-                    mutableListOf(),
-                )
-            computer.executeProgram()
-            if (computer.output == listOf(0, 3, 5, 4, 3, 0)) {
-                break
-            } else {
-                registerA += 8
-                println(computer.output.joinToString("").toInt())
+        val registerA =
+            binarySearchOnRotatedArraysWithDuplicateElements(
+                listOf(0, 3, 5, 4, 3, 0).reversed().joinToString("").toLong(),
+                0,
+                Int.MAX_VALUE.toLong(),
+                -1,
+            ) { registerA ->
+                val computer =
+                    Computer(
+                        registerA,
+                        0,
+                        0,
+                        listOf(0, 3, 5, 4, 3, 0),
+                        mutableListOf(),
+                    )
+                computer.executeProgram()
+                return@binarySearchOnRotatedArraysWithDuplicateElements computer.output
+                    .reversed()
+                    .joinToString("")
+                    .toLong()
             }
-        }
         return registerA
     }
 
     fun part2(input: List<String>): Long {
-//        LongRange(0, Long.MAX_VALUE)
-//
 //        var registerA = 0L
-//        var registerAInc = Long.MAX_VALUE / 800000
-//        while (true) {
-//            val computer =
-//                Computer(
-//                    registerA,
-//                    0,
-//                    0,
-//                    // 16
-//                    listOf(2, 4, 1, 1, 7, 5, 1, 5, 4, 0, 5, 5, 0, 3, 3, 0),
-//                    mutableListOf(),
-//                )
-//            computer.executeProgram()
-//            if (computer.output == listOf(2, 4, 1, 1, 7, 5, 1, 5, 4, 0, 5, 5, 0, 3, 3, 0)) {
-//                break
-//            } else {
-//                registerA += registerAInc
-//                if (registerA < 0) {
-//                    break
-//                }
-//                if (computer.output.size == 16) {
-//                    println(computer.output.joinToString(""))
-//                }
-//
-// //                println(computer.output.joinToString(""))
-//            }
+//        while (registerA < 50_000) {
+//            println(compute(registerA).joinToString("").toLong(8))
+//            registerA++
 //        }
+
         val registerAValue =
             binarySearchOnRotatedArraysWithDuplicateElements(
-                "2411751540550330".toLong(),
+                listOf(2, 4, 1, 1, 7, 5, 1, 5, 4, 0, 5, 5, 0, 3, 3, 0)
+//                    .reversed()
+                    .joinToString("")
+                    .toLong(8),
                 0,
                 Long.MAX_VALUE,
                 -1,
             ) { registerA ->
 
-                return@binarySearchOnRotatedArraysWithDuplicateElements compute(registerA).joinToString("").toLong()
+                val compute = compute(registerA)
+//                if (compute.size > 19) {
+//                    return@binarySearchOnRotatedArraysWithDuplicateElements Long.MAX_VALUE
+//                } else {
+                val toLong =
+                    compute
+//                        .reversed()
+                        .joinToString("")
+                        .toLong(8)
+                println(toLong)
+                return@binarySearchOnRotatedArraysWithDuplicateElements toLong
+//                }
             }
-        println(compute(4611686018427387901))
-        println(compute(4611686018427387902))
-        println(compute(4611686018427387903))
-        println(compute(4611686018427387904))
-        println(compute(4611686018427387905))
         return registerAValue
     }
 
