@@ -11,21 +11,21 @@ class Day16 {
     fun part1Example1() {
         val input =
             """
-###############
-#.......#....E#
-#.#.###.#.###.#
-#.....#.#...#.#
-#.###.#####.#.#
-#.#.#.......#.#
-#.#.#####.###.#
-#...........#.#
-###.#.#####.#.#
-#...#.....#.#.#
-#.#.#.###.#.#.#
-#.....#...#.#.#
-#.###.#.#.#.#.#
-#S..#.....#...#
-###############
+            ###############
+            #.......#....E#
+            #.#.###.#.###.#
+            #.....#.#...#.#
+            #.###.#####.#.#
+            #.#.#.......#.#
+            #.#.#####.###.#
+            #...........#.#
+            ###.#.#####.#.#
+            #...#.....#.#.#
+            #.#.#.###.#.#.#
+            #.....#...#.#.#
+            #.###.#.#.#.#.#
+            #S..#.....#...#
+            ###############
             """.trimIndent()
                 .lines()
         val result = part1(input)
@@ -36,23 +36,23 @@ class Day16 {
     fun part1Example2() {
         val input =
             """
-#################
-#...#...#...#..E#
-#.#.#.#.#.#.#.#.#
-#.#.#.#...#...#.#
-#.#.#.#.###.#.#.#
-#...#.#.#.....#.#
-#.#.#.#.#.#####.#
-#.#...#.#.#.....#
-#.#.#####.#.###.#
-#.#.#.......#...#
-#.#.###.#####.###
-#.#.#...#.....#.#
-#.#.#.#####.###.#
-#.#.#.........#.#
-#.#.#.#########.#
-#S#.............#
-#################
+            #################
+            #...#...#...#..E#
+            #.#.#.#.#.#.#.#.#
+            #.#.#.#...#...#.#
+            #.#.#.#.###.#.#.#
+            #...#.#.#.....#.#
+            #.#.#.#.#.#####.#
+            #.#...#.#.#.....#
+            #.#.#####.#.###.#
+            #.#.#.......#...#
+            #.#.###.#####.###
+            #.#.#...#.....#.#
+            #.#.#.#####.###.#
+            #.#.#.........#.#
+            #.#.#.#########.#
+            #S#.............#
+            #################
             """.trimIndent()
                 .lines()
         val result = part1(input)
@@ -77,86 +77,13 @@ class Day16 {
         W,
     }
 
-    fun Direction.others(): List<Direction> =
-        when (this) {
-            Direction.N -> listOf(Direction.E, Direction.S, Direction.W)
-            Direction.E -> listOf(Direction.N, Direction.S, Direction.W)
-            Direction.S -> listOf(Direction.N, Direction.E, Direction.W)
-            Direction.W -> listOf(Direction.N, Direction.E, Direction.S)
+    fun Positionm.neighbor(direction: Direction): Positionm =
+        when (direction) {
+            Direction.N -> this.north()
+            Direction.E -> this.east()
+            Direction.S -> this.south()
+            Direction.W -> this.west()
         }
-
-    fun Positionm.neighborsWithWeight(d1: Direction): List<Pair<Pair<Positionm, Direction>, Int>> =
-        d1
-            .others()
-            .map { d2 ->
-                (this to d2) to d1.weight(d2)
-            }
-
-    fun Positionm.neighbors(d1: Direction): List<Pair<Positionm, Direction>> =
-        d1
-            .others()
-            .map { d2 ->
-                (this to d2)
-            }
-
-    fun Direction.weight(direction: Direction): Int =
-        when (Pair(this, direction)) {
-            Direction.N to Direction.E -> 1000
-            Direction.N to Direction.S -> 0
-            Direction.N to Direction.W -> 1000
-            Direction.E to Direction.S -> 1000
-            Direction.E to Direction.N -> 1000
-            Direction.E to Direction.W -> 0
-            Direction.S to Direction.W -> 1000
-            Direction.S to Direction.N -> 0
-            Direction.S to Direction.E -> 1000
-            Direction.W to Direction.N -> 1000
-            Direction.W to Direction.E -> 0
-            Direction.W to Direction.S -> 1000
-            else -> error("shouldn't happen, but was ${Pair(this, direction)}")
-        }
-
-    fun Grid<Char>.dijkstraWithLoops(start: Positionm): Map<Pair<Positionm, Direction>, Int> {
-        var visited = mutableSetOf<Pair<Positionm, Direction>>()
-        val distances = mutableMapOf<Pair<Positionm, Direction>, Int>().withDefault { Int.MAX_VALUE }
-        val queue: Queue<Pair<Positionm, Direction>> = LinkedList<Pair<Positionm, Direction>>()
-        queue.add(start to Direction.E)
-        distances[start to Direction.E] = 0
-        while (queue.isNotEmpty()) {
-            val (position, direction) = queue.poll()
-            val nodeDistance = distances.getOrDefault(position to direction, Int.MAX_VALUE)
-            // find neighbors
-            val neighbors =
-                buildList {
-                    position
-                        .neighborsWithWeight(direction)
-//                        .filter { this@countAllShorts.containsKey(it) } // TODO: what is this
-//                        .filterNot { it.first in visited }
-                        .forEach { add(it) }
-                    val neighbor =
-                        when (direction) {
-                            Direction.N -> position.north() to Direction.S
-                            Direction.E -> position.east() to Direction.W
-                            Direction.S -> position.south() to Direction.N
-                            Direction.W -> position.west() to Direction.E
-                        }
-                    if (this@dijkstraWithLoops.elements[neighbor.first] != '#') {
-                        add(neighbor to 1)
-                    }
-                }
-
-            neighbors.forEach { (node, distance) ->
-                val totalDistance = nodeDistance + distance
-                // filter distance less than current
-                if (totalDistance < distances.getOrDefault(node, Int.MAX_VALUE)) {
-                    distances[node] = totalDistance
-                    visited.add(node)
-                    queue.add(node)
-                }
-            }
-        }
-        return distances
-    }
 
     fun part1(input: List<String>): Int {
         val grid =
@@ -175,37 +102,59 @@ class Day16 {
                 .firstNotNullOf { entry ->
                     if (entry.value == 'E') entry.key else null
                 }.also(::println)
-        val shortDistances =
-            grid
-                .dijkstraWithLoops(start)
 
-        return shortDistances
-            .filter { entry ->
-                entry.key.first == end
-            }.minOf { entry ->
-                entry.value
+        val visited = mutableSetOf<Pair<Positionm, Direction>>()
+        val queue = PriorityQueue<State>(compareBy { it.distance })
+        queue += State(start, Direction.E, 0, null)
+        var bestDistance = Int.MAX_VALUE
+        while (queue.isNotEmpty()) {
+            val state =
+                queue.remove().also { visited += it.position to it.direction }
+            if (state.position == end) {
+                if (state.distance <= bestDistance) {
+                    bestDistance = state.distance
+                } else {
+                    break
+                }
             }
+            queue +=
+                buildList {
+                    val left = state.direction.rotateLeft()
+                    if (grid.elements[state.position.move(left)] != '#') {
+                        add(State(state.position, left, state.distance + 1000, state))
+                    }
+                    val right = state.direction.rotateRight()
+                    if (grid.elements[state.position.move(right)] != '#') {
+                        add(State(state.position, right, state.distance + 1000, state))
+                    }
+                    if (grid.elements[state.position.move(state.direction)] != '#') {
+                        add(State(state.position.move(state.direction), state.direction, state.distance + 1, state))
+                    }
+                }.filter { (it.position to it.direction) !in visited }
+        }
+
+        return bestDistance
     }
 
     @Test
     fun part2Example1() {
         val input =
             """
-###############
-#.......#....E#
-#.#.###.#.###.#
-#.....#.#...#.#
-#.###.#####.#.#
-#.#.#.......#.#
-#.#.#####.###.#
-#...........#.#
-###.#.#####.#.#
-#...#.....#.#.#
-#.#.#.###.#.#.#
-#.....#...#.#.#
-#.###.#.#.#.#.#
-#S..#.....#...#
-###############
+            ###############
+            #.......#....E#
+            #.#.###.#.###.#
+            #.....#.#...#.#
+            #.###.#####.#.#
+            #.#.#.......#.#
+            #.#.#####.###.#
+            #...........#.#
+            ###.#.#####.#.#
+            #...#.....#.#.#
+            #.#.#.###.#.#.#
+            #.....#...#.#.#
+            #.###.#.#.#.#.#
+            #S..#.....#...#
+            ###############
             """.trimIndent()
                 .lines()
         val result = part2(input)
@@ -216,23 +165,23 @@ class Day16 {
     fun part2Example2() {
         val input =
             """
-#################
-#...#...#...#..E#
-#.#.#.#.#.#.#.#.#
-#.#.#.#...#...#.#
-#.#.#.#.###.#.#.#
-#...#.#.#.....#.#
-#.#.#.#.#.#####.#
-#.#...#.#.#.....#
-#.#.#####.#.###.#
-#.#.#.......#...#
-#.#.###.#####.###
-#.#.#...#.....#.#
-#.#.#.#####.###.#
-#.#.#.........#.#
-#.#.#.#########.#
-#S#.............#
-#################
+            #################
+            #...#...#...#..E#
+            #.#.#.#.#.#.#.#.#
+            #.#.#.#...#...#.#
+            #.#.#.#.###.#.#.#
+            #...#.#.#.....#.#
+            #.#.#.#.#.#####.#
+            #.#...#.#.#.....#
+            #.#.#####.#.###.#
+            #.#.#.......#...#
+            #.#.###.#####.###
+            #.#.#...#.....#.#
+            #.#.#.#####.###.#
+            #.#.#.........#.#
+            #.#.#.#########.#
+            #S#.............#
+            #################
             """.trimIndent()
                 .lines()
         val result = part2(input)
@@ -245,54 +194,39 @@ class Day16 {
         val duration =
             measureTime {
                 val result = part2(lines)
-                assertThat(result).isEqualTo(0) // 464 is too high
+                assertThat(result).isEqualTo(451)
+                // 464 is too high
                 // 463 other person input
                 // 462 is too high
+                // 482 is not the right answer
             }
         println("part2 $duration")
     }
 
-    fun Map<Pair<Positionm, Direction>, Int>.countAllShorts(start: Positionm): Set<Pair<Positionm, Direction>> {
-        var visited = mutableSetOf<Pair<Positionm, Direction>>()
-        val queue: Queue<Pair<Positionm, Direction>> = LinkedList<Pair<Positionm, Direction>>()
-//        queue.add(start to Direction.N)
-//        queue.add(start to Direction.E)
-        queue.add(start to Direction.S)
-//        queue.add(start to Direction.W)
-        while (queue.isNotEmpty()) {
-            val (position, direction) = queue.poll()
-            val nodeDistance = this[position to direction]!!
-            // find neighbors
-            val neighbors =
-                buildList {
-                    position
-                        .neighbors(direction)
-//                        .filter { this@countAllShorts.containsKey(it) }
-                        .filterNot { it in visited }
-                        .forEach { add(it) }
-                    val neighbor =
-                        when (direction) {
-                            Direction.N -> position.north() to Direction.S
-                            Direction.E -> position.east() to Direction.W
-                            Direction.S -> position.south() to Direction.N
-                            Direction.W -> position.west() to Direction.E
-                        }
-                    if (this@countAllShorts.containsKey(neighbor)) {
-                        add(neighbor)
-                    }
-                }
+    data class State(
+        val position: Positionm,
+        val direction: Direction,
+        val distance: Int,
+        val previous: State?,
+    )
 
-            neighbors.forEach { candidate ->
-                val distance = this[candidate]!!
-                // filter distance less than current
-                if (distance <= nodeDistance) {
-                    visited.add(candidate)
-                    queue.add(candidate)
-                }
-            }
+    fun Direction.rotateLeft(): Direction =
+        when (this) {
+            Direction.N -> Direction.W
+            Direction.E -> Direction.N
+            Direction.S -> Direction.E
+            Direction.W -> Direction.S
         }
-        return visited
-    }
+
+    fun Direction.rotateRight(): Direction =
+        when (this) {
+            Direction.N -> Direction.E
+            Direction.E -> Direction.S
+            Direction.S -> Direction.W
+            Direction.W -> Direction.N
+        }
+
+    fun Positionm.move(direction: Direction): Positionm = this.neighbor(direction)
 
     fun part2(input: List<String>): Int {
         val grid =
@@ -311,62 +245,43 @@ class Day16 {
                 .firstNotNullOf { entry ->
                     if (entry.value == 'E') entry.key else null
                 }.also(::println)
-        val shortDistances =
-            grid
-                .dijkstraWithLoops(start)
-                .also(::println)
 
-//        grid
-//            .rowIndices()
-//            .joinToString("\n") { i ->
-//                grid
-//                    .columnIndices()
-//                    .map { j ->
-//                        val distance = shortDistances[Positionm(i, j)]
-//                        return@map if (distance == null) {
-//                            "    "
-//                        } else {
-//                            val displayDistance = distance
-//                            val distanceStr = displayDistance.toString()
-//                            when (distanceStr.length) {
-//                                1 -> "   $distanceStr"
-//                                2 -> "  $distanceStr"
-//                                3 -> " $distanceStr"
-//                                4 -> "$distanceStr"
-// //                                4 -> " $distanceStr"
-// //                                5 -> "$distanceStr"
-//                                else -> error("shouldn't happen, but was $distanceStr")
-//                            }
-//                        }
-//                    }.joinToString("")
-//            }.also(::println)
+        val visited = mutableSetOf<Pair<Positionm, Direction>>()
+        val queue = PriorityQueue<State>(compareBy { it.distance })
+        queue += State(start, Direction.E, 0, null)
+        val bestPoints = mutableSetOf(end)
+        var bestDistance = Int.MAX_VALUE
+        while (queue.isNotEmpty()) {
+            val state =
+                queue.remove().also { visited += it.position to it.direction }
+            if (state.position == end) {
+                if (state.distance <= bestDistance) {
+                    bestDistance = state.distance
+                    var current = state
+                    do {
+                        bestPoints += current.position
+                        current = current.previous
+                    } while (current != null)
+                } else {
+                    break
+                }
+            }
+            queue +=
+                buildList {
+                    val left = state.direction.rotateLeft()
+                    if (grid.elements[state.position.move(left)] != '#') {
+                        add(State(state.position, left, state.distance + 1000, state))
+                    }
+                    val right = state.direction.rotateRight()
+                    if (grid.elements[state.position.move(right)] != '#') {
+                        add(State(state.position, right, state.distance + 1000, state))
+                    }
+                    if (grid.elements[state.position.move(state.direction)] != '#') {
+                        add(State(state.position.move(state.direction), state.direction, state.distance + 1, state))
+                    }
+                }.filter { (it.position to it.direction) !in visited }
+        }
 
-        val pathElements = shortDistances.countAllShorts(end)
-
-        val onlyPositions = pathElements.map { it.first }.toSet()
-        grid
-            .rowIndices()
-            .joinToString("\n") { i ->
-                grid
-                    .columnIndices()
-                    .map { j ->
-                        if (onlyPositions.contains(Positionm(i, j))) {
-                            "0"
-                        } else {
-                            when (grid.elements[Positionm(i, j)]) {
-                                '#' -> '■'
-                                '.' -> ' '
-                                else -> grid.elements[Positionm(i, j)]
-                            }
-                        }
-                    }.joinToString("")
-            }.also(::println)
-
-        pathElements
-            .map { pair ->
-                "${shortDistances[pair]} ${pair.first.row},${pair.first.col},${pair.second}"
-            }.also(::println)
-
-        return onlyPositions.size
+        return bestPoints.size
     }
 }
