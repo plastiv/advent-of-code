@@ -3,6 +3,7 @@ package aoc2024
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import org.junit.jupiter.api.Test
+import utils.binarySearchLowerBound
 import java.util.*
 import kotlin.time.measureTime
 
@@ -107,7 +108,7 @@ class Day18 {
 2,0
             """.trimIndent()
                 .lines()
-        val result = part2(input, 12, 6, 6)
+        val result = part2(input, 6, 6)
         assertThat(result).isEqualTo(Positionm(1, 6))
     }
 
@@ -116,7 +117,7 @@ class Day18 {
         val lines = fileInput("Day18.txt").readLines()
         val duration =
             measureTime {
-                val result = part2(lines, 1024, 70, 70)
+                val result = part2(lines, 70, 70)
                 assertThat(result).isEqualTo(Positionm(60, 27))
             }
         println("part2 $duration")
@@ -179,27 +180,12 @@ class Day18 {
                     current = parentMap[current]!!
                 }
             }
-//        bounds.horizontal.joinToString("\n") { i ->
-//            bounds.vertical
-//                .map { j ->
-//                    val pos = Positionm(i, j)
-//                    if (pos in faultSegments) {
-//                        '#'
-//                        //                        } else if (pos in visited) {
-//                    } else if (pos in shortPath) {
-//                        '0'
-//                    } else {
-//                        '.'
-//                    }
-//                }.joinToString("")
-//        }.also(::println)
 
         return shortPath
     }
 
     fun part2(
         input: List<String>,
-        startIter: Int,
         width: Int,
         height: Int,
     ): Positionm {
@@ -210,14 +196,11 @@ class Day18 {
                 }.map { (first, second) -> Positionm(second, first) }
 
         val end = Positionm(height, width)
-        var iter = faultSegments.size - 1
-        while (true) {
-            val path = findPath(faultSegments, iter, width, height)
-            if (end in path) {
-                break
+        val segmentIndex =
+            (0..faultSegments.size).binarySearchLowerBound { i ->
+                val path = findPath(faultSegments, i, width, height)
+                end !in path
             }
-            iter--
-        }
-        return faultSegments[iter]
+        return faultSegments[segmentIndex - 1]
     }
 }
