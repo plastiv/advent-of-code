@@ -44,7 +44,7 @@ class Day19 {
                 .first()
                 .split(", ")
                 .map(String::reversed)
-                .sortedByDescending { string -> string.length }
+//                .sortedByDescending { string -> string.length }
         val words =
             input
                 .drop(2)
@@ -71,10 +71,20 @@ class Day19 {
     fun part2Example1() {
         val input =
             """
+            r, wr, b, g, bwu, rb, gb, br
+
+            brwrr
+            bggr
+            gbbr
+            rrbgbr
+            ubwu
+            bwurrg
+            brgr
+            bbrgwb
             """.trimIndent()
                 .lines()
         val result = part2(input)
-        assertThat(result).isEqualTo(0)
+        assertThat(result).isEqualTo(16)
     }
 
     @Test
@@ -83,10 +93,38 @@ class Day19 {
         val duration =
             measureTime {
                 val result = part2(lines)
-                assertThat(result).isEqualTo(0)
+                assertThat(result).isEqualTo(639963796864990)
             }
         println("part2 $duration")
     }
 
-    fun part2(input: List<String>) = 0
+    fun part2(input: List<String>): Long {
+        val alphabet =
+            input
+                .first()
+                .split(", ")
+                .map(String::reversed)
+//                .sortedByDescending { string -> string.length }
+        val words =
+            input
+                .drop(2)
+                .map(String::reversed)
+
+        fun count(
+            word: String,
+            cache: MutableMap<String, Long>,
+        ): Long =
+            cache.getOrPut(word) {
+                if (word.isEmpty()) {
+                    1
+                } else {
+                    alphabet
+                        .filter { word.startsWith(it) }
+                        .sumOf { count(word.removePrefix(it), cache) }
+                }
+            }
+
+        val cache = mutableMapOf<String, Long>()
+        return words.sumOf { count(it, cache) }
+    }
 }
